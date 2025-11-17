@@ -1,8 +1,11 @@
 const express = require('express');
 require('dotenv').config();
-
+const connectDB = require('./config/db')
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// connexion à la base de données
+connectDB();
 
 // Initial route pour tester l'API
 app.get('/', (req, res) => {
