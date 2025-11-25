@@ -5,6 +5,7 @@ const { userErrorHandler, urlnotfound } = require('./middleware/authMiddleware')
 const app = express();
 const PORT = process.env.PORT || 3000;
 const authRoutes = require('./routes/authRoutes');
+const trajetRoutes = require('./routes/trajetRoutes');
 
 // Middleware pour parser le JSON
 app.use(express.json());
@@ -19,6 +20,9 @@ app.get('/', (req, res) => {
 
 // Routes d'authentification
 app.use('/api/auth', authRoutes);
+
+// Routes des trajets
+app.use('/api/trajets', trajetRoutes);
 
 // Middleware de gestion d'erreurs
 app.use(urlnotfound);

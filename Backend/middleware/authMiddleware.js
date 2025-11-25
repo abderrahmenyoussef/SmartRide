@@ -38,6 +38,18 @@ const protect = asyncHandler(async (req, res, next) => {
     }
 });
 
+// Middleware pour vérifier le rôle conducteur
+const checkRole = (role) => {
+    return (req, res, next) => {
+        if (req.user && req.user.role === role) {
+            next();
+        } else {
+            res.status(403);
+            throw new Error(`Accès refusé : rôle ${role} requis`);
+        }
+    };
+};
+
 const urlnotfound = (req, res, next) => {
     const error = new Error(`URL Not Found: ${req.originalUrl}`);
     res.status(404);
@@ -67,4 +79,4 @@ const userErrorHandler = (err, req, res, next) => {
     });
 };
 
-module.exports = { protect, urlnotfound, userErrorHandler };
+module.exports = { protect, checkRole, urlnotfound, userErrorHandler };
