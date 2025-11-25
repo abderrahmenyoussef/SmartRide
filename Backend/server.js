@@ -1,10 +1,10 @@
 const express = require('express');
 require('dotenv').config();
 const connectDB = require('./config/db')
-const { userErrorHandler, urlnotfound } = require('./middleware/errorMiddleware');
+const { userErrorHandler, urlnotfound } = require('./middleware/authMiddleware');
 const app = express();
 const PORT = process.env.PORT || 3000;
-const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 // Middleware pour parser le JSON
 app.use(express.json());
@@ -17,8 +17,8 @@ app.get('/', (req, res) => {
     res.send('Bienvenue sur la page d\'accueil de mon API de SmartRide!')
 })
 
-// Routes utilisateur
-app.use('/api/users', userRoutes);
+// Routes d'authentification
+app.use('/api/auth', authRoutes);
 
 // Middleware de gestion d'erreurs
 app.use(urlnotfound);
