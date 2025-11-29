@@ -6,6 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const authRoutes = require('./routes/authRoutes');
 const trajetRoutes = require('./routes/trajetRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 // Middleware pour parser le JSON
 app.use(express.json());
@@ -23,6 +24,9 @@ app.use('/api/auth', authRoutes);
 
 // Routes des trajets
 app.use('/api/trajets', trajetRoutes);
+
+// Routes pour l'agent IA (support client)
+app.use('/api/ai', aiRoutes);
 
 // Middleware de gestion d'erreurs
 app.use(urlnotfound);

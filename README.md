@@ -11,6 +11,8 @@
 - [Technologies utilisées](#technologies-utilisées)
 - [Architecture du projet](#architecture-du-projet)
 - [Système d'authentification](#système-dauthentification)
+- [Système de gestion des trajets](#système-de-gestion-des-trajets)
+- [Système de chatbot IA - Support client](#système-de-chatbot-ia---support-client)
 - [Documentation API](#documentation-api)
 - [Installation et démarrage](#installation-et-démarrage)
 - [Tests des endpoints](#tests-des-endpoints)
@@ -68,6 +70,17 @@ L'approche **API First** présente plusieurs avantages :
   - Crée des IDs uniques pour les réservations
   - Garantit l'unicité des réservations dans les trajets
 
+- **axios v1.4.0** - Client HTTP pour Node.js
+  - Effectue des requêtes HTTP vers des APIs externes
+  - Utilisé pour communiquer avec l'API OpenRouter (chatbot IA)
+  - Gestion des timeouts et des erreurs réseau
+
+### Intelligence Artificielle
+- **OpenRouter API** - Plateforme d'accès aux modèles IA
+  - Intégration du modèle **x-ai/grok-4.1-fast:free** (Grok)
+  - Chatbot intelligent pour le support client
+  - Répond aux questions sur les trajets, prix, disponibilités
+
 ### Développement
 - **nodemon v3.1.10** - Outil de développement
   - Redémarre automatiquement le serveur lors des modifications de code
@@ -84,7 +97,8 @@ SmartRide/
 │   │   └── db.js                 # Configuration de la connexion MongoDB
 │   ├── controllers/
 │   │   ├── authController.js     # Logique métier de l'authentification
-│   │   └── trajetController.js   # Logique métier de gestion des trajets
+│   │   ├── trajetController.js   # Logique métier de gestion des trajets
+│   │   └── aiController.js       # Logique métier du chatbot IA (support client)
 │   ├── middleware/
 │   │   └── authMiddleware.js     # Middlewares d'authentification et gestion d'erreurs
 │   ├── models/
@@ -93,8 +107,12 @@ SmartRide/
 │   │   └── Reservation.js        # Schéma de réservation (sous-document)
 │   ├── routes/
 │   │   ├── authRoutes.js         # Définition des routes d'authentification
-│   │   └── trajetRoutes.js       # Définition des routes de trajets
+│   │   ├── trajetRoutes.js       # Définition des routes de trajets
+│   │   └── aiRoutes.js           # Définition des routes du chatbot IA
+│   ├── services/
+│   │   └── openRouterClient.js   # Client HTTP pour l'API OpenRouter (Grok)
 │   ├── .env                      # Variables d'environnement (non versionné)
+│   ├── .env.example              # Exemple de configuration environnement
 │   ├── server.js                 # Point d'entrée de l'application
 │   └── package.json              # Dépendances et scripts npm
 ├── captures/                     # Screenshots des tests API
@@ -118,7 +136,8 @@ SmartRide/
 │   ├── 18.png                    # Test annulation réservation (conducteur - refusé)
 │   ├── 19.png                    # Test suppression trajet avec réservations
 │   ├── 20.png                    # Test suppression trajet sans réservations
-│   └── 21.png                    # Test modification de réservation
+│   ├── 21.png                    # Test modification de réservation
+│   └── 22.png                    # Test chatbot IA - Support client
 └── README.md                     # Documentation du projet
 ```
 
@@ -129,6 +148,7 @@ SmartRide/
 - **middleware/** : Contient les middlewares (authentification, gestion d'erreurs, etc.)
 - **models/** : Contient les schémas de données Mongoose
 - **routes/** : Définit les endpoints de l'API et les associe aux controllers
+- **services/** : Services externes et clients API (OpenRouter pour le chatbot IA)
 
 ---
 
@@ -576,6 +596,227 @@ POST   /api/trajets/:id/reservations              → protect → bookTrajet
 PUT    /api/trajets/:trajetId/reservations/:reservationId    → protect → updateReservation
 DELETE /api/trajets/:trajetId/reservations/:reservationId    → protect → cancelReservation
 ```
+
+---
+
+## 🤖 Système de chatbot IA - Support client
+
+SmartRide intègre un **chatbot intelligent** propulsé par **Grok** (x-ai/grok-4.1-fast:free) via l'API OpenRouter. Ce chatbot sert de support client automatisé et peut répondre aux questions des utilisateurs concernant les trajets disponibles, les prix, les itinéraires, etc.
+
+### Fonctionnalités du chatbot
+
+✅ **Support client automatisé** - Réponses en temps réel aux questions  
+✅ **Contextuel** - Connaît le rôle de l'utilisateur (conducteur/passager)  
+✅ **Informé** - Accède aux données réelles de la base de données  
+✅ **Multilingue** - Répond principalement en français  
+✅ **Intelligence conversationnelle** - Comprend le langage naturel  
+
+### Architecture du chatbot
+
+#### 1. **Client OpenRouter (services/openRouterClient.js)**
+
+Service qui communique avec l'API OpenRouter pour interroger le modèle Grok.
+
+**Configuration (via `.env`) :**
+```javascript
+OPENROUTER_URL=your_openrouter_endpoint
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_MODEL=your_model_name_here
+```
+
+**Fonction principale :**
+- **`sendMessage(messages, options)`** : Envoie des messages au modèle IA et retourne la réponse
+  - Utilise **axios** pour les requêtes HTTP
+  - Timeout de 30 secondes
+  - Gestion d'erreurs avancée (DNS, API, réseau)
+  - Validation de configuration complète
+
+**Sécurité :**
+- ✅ Validation des variables d'environnement au démarrage
+- ✅ Messages d'erreur explicites pour debugging
+- ✅ Timeout pour éviter les blocages
+- ✅ Clé API stockée dans `.env` (non versionnée)
+
+#### 2. **Controller IA (controllers/aiController.js)**
+
+Gère la logique métier du chatbot et prépare le contexte depuis la base de données.
+
+**Fonction `chat(req, res)` :**
+
+1. **Récupération du contexte utilisateur** :
+   - Identité de l'utilisateur (username, rôle) via `req.user`
+   - Message de l'utilisateur depuis `req.body.message`
+
+2. **Agrégation des données depuis MongoDB** :
+   - **Nombre de trajets disponibles** (date future + places restantes > 0)
+   - **Plage de prix** (min/max des trajets futurs)
+   - **Exemples de trajets** (5 prochains trajets avec détails)
+
+3. **Construction du prompt contextuel** :
+   ```javascript
+   System: "You are SmartRide customer support assistant..."
+   User context: "Utilisateur: john (passager), 15 trajets disponibles, 
+                  Prix: 10-50€, Exemples: Paris→Lyon 25€..."
+   User question: "Combien de trajets vers Lyon ?"
+   ```
+
+4. **Appel au modèle IA** :
+   - Utilise le client OpenRouter
+   - Paramètres : `max_tokens: 600`, `temperature: 0.2` (réponses précises)
+   - Retourne la réponse générée
+
+**Agrégations MongoDB utilisées :**
+```javascript
+// Trajets disponibles avec places restantes
+Trajet.aggregate([
+  { $addFields: { placesRestantes: { $subtract: ["$placesDisponibles", "$placesReservees"] } } },
+  { $match: { dateDepart: { $gte: now }, placesRestantes: { $gt: 0 } } },
+  { $count: 'count' }
+])
+
+// Plage de prix
+Trajet.aggregate([
+  { $match: { dateDepart: { $gte: now } } },
+  { $group: { _id: null, min: { $min: '$prix' }, max: { $max: '$prix' } } }
+])
+```
+
+#### 3. **Routes IA (routes/aiRoutes.js)**
+
+Définit l'endpoint du chatbot avec protection par authentification.
+
+```javascript
+POST   /api/ai/chat   → protect → chat
+```
+
+**Protection :**
+- ✅ Route protégée (middleware `protect`)
+- ✅ Utilisateur doit être authentifié
+- ✅ Token JWT requis dans les headers
+
+---
+
+### Documentation API - Chatbot IA
+
+#### **Chat avec l'assistant IA**
+
+**Endpoint :** `POST /api/ai/chat`
+
+**Description :** Permet d'envoyer un message au chatbot IA et recevoir une réponse contextuelle basée sur les données réelles de la plateforme.
+
+**Headers :**
+```
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Body (JSON) :**
+```json
+{
+  "message": "Combien de trajets sont disponibles vers Paris aujourd'hui ?"
+}
+```
+
+**Paramètres :**
+| Champ | Type | Requis | Description |
+|-------|------|--------|-------------|
+| message | String | Oui | Question ou message à envoyer au chatbot |
+
+**Réponse succès (200) :**
+```json
+{
+  "success": true,
+  "reply": "Bonjour ! Actuellement, nous avons 15 trajets disponibles avec des places. Les prix varient entre 10€ et 50€. Par exemple, il y a un trajet Paris → Lyon prévu pour demain à 25€ avec 3 places disponibles. Souhaitez-vous plus de détails sur un trajet spécifique ?"
+}
+```
+
+**Réponse erreur (400) :**
+```json
+{
+  "message": "Erreur détectée avec le Middleware",
+  "error": "Le champ `message` est requis et doit être une chaîne de caractères"
+}
+```
+
+**Réponse erreur (401) :**
+```json
+{
+  "message": "Erreur détectée avec le Middleware",
+  "error": "Non autorisé, pas de token"
+}
+```
+
+**Réponse erreur (500) - API OpenRouter :**
+```json
+{
+  "message": "Erreur détectée avec le Middleware",
+  "error": "Erreur lors de la requête vers OpenRouter: timeout of 30000ms exceeded"
+}
+```
+
+---
+
+### Exemples d'utilisation du chatbot
+
+#### **Exemple 1 : Questions sur les trajets disponibles**
+
+**Requête :**
+```bash
+curl -X POST http://localhost:3000/api/ai/chat \
+  -H "Authorization: Bearer eyJhbGc..." \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Combien de trajets disponibles avez-vous ?"}'
+```
+
+**Réponse :**
+```json
+{
+  "success": true,
+  "reply": "Nous avons actuellement 23 trajets disponibles avec des places restantes."
+}
+```
+
+#### **Exemple 2 : Questions sur les prix**
+
+**Requête :**
+```json
+{
+  "message": "Quels sont les prix typiques pour les trajets ?"
+}
+```
+
+**Réponse :**
+```json
+{
+  "success": true,
+  "reply": "Les prix varient généralement entre 8€ et 45€ selon la distance et la destination. La plupart des trajets se situent autour de 20-30€."
+}
+```
+
+#### **Exemple 3 : Questions spécifiques à un itinéraire**
+
+**Requête :**
+```json
+{
+  "message": "Y a-t-il des trajets Paris → Lyon disponibles cette semaine ?"
+}
+```
+
+**Réponse :**
+```json
+{
+  "success": true,
+  "reply": "Oui ! J'ai trouvé 2 trajets Paris → Lyon disponibles cette semaine : un demain à 25€ avec 2 places, et un autre vendredi à 30€ avec 4 places disponibles."
+}
+```
+
+---
+
+
+### Capture d'écran - Test du chatbot
+
+![Test chatbot IA](./captures/22.png)
+*Exemple de conversation avec le chatbot pour obtenir des informations sur les trajets disponibles*
 
 ---
 
@@ -1329,6 +1570,12 @@ Authorization: Bearer [TOKEN_PASSAGER]
 | `/api/trajets/:id/reservations` | POST | ✅ Protégée | Passager | Réserver un trajet |
 | `/api/trajets/:trajetId/reservations/:reservationId` | PUT | ✅ Protégée | Passager | Modifier une réservation |
 | `/api/trajets/:trajetId/reservations/:reservationId` | DELETE | ✅ Protégée | Passager | Annuler une réservation |
+
+#### Chatbot IA - Support client
+
+| Endpoint | Méthode | Protection | Rôle | Description |
+|----------|---------|------------|------|-------------|
+| `/api/ai/chat` | POST | ✅ Protégée | Tous | Conversation avec le chatbot IA |
 
 ---
 
