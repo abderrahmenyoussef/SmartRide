@@ -1,4 +1,4 @@
-/* Global Styles - RhoumaCouvoiturage */
+/* Global Styles - SmartRide */
 
 /* Reset and Base */
 * {
@@ -6,6 +6,11 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
 }
 
 body {
@@ -200,10 +205,7 @@ html {
 
 /* App Container */
 .app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  padding-top: 90px; /* Space for fixed navbar */
+  min-height: calc(100vh - 70px);
 }
 
 /* Form Groups */

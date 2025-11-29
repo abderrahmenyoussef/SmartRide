@@ -6,6 +6,8 @@
   padding: 20px;
   padding-top: 90px;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .auth-card {

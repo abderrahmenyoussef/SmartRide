@@ -169,7 +169,8 @@ function Dashboard() {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-page">
+      <div className="dashboard-container">
       {/* Header */}
       <div className="dashboard-header">
         <div className="welcome-section">
@@ -711,6 +712,7 @@ function Dashboard() {
         title={alertConfig.title}
         message={alertConfig.message}
       />
+      </div>
     </div>
   );
 }
