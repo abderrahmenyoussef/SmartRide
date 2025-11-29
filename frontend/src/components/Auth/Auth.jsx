@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Alert, Modal } from '../shared';
 import './Auth.css';
 
 function Auth() {
@@ -9,6 +10,18 @@ function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Alert state
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    type: 'warning',
+    title: '',
+    message: ''
+  });
+
+  // Modal states for terms and privacy
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // Login form state
   const [loginForm, setLoginForm] = useState({
@@ -120,6 +133,17 @@ function Auth() {
     setErrorMessage('');
     setSuccessMessage('');
 
+    // Check if terms are accepted
+    if (!registerForm.termsAccepted) {
+      setAlertConfig({
+        type: 'warning',
+        title: 'Conditions requises',
+        message: 'Vous devez accepter les conditions générales et la politique de confidentialité pour créer un compte.'
+      });
+      setShowAlert(true);
+      return;
+    }
+
     if (!isRegisterValid) {
       setRegisterTouched({ username: true, email: true, password: true });
       return;
@@ -129,7 +153,12 @@ function Auth() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      setSuccessMessage('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
+      setAlertConfig({
+        type: 'success',
+        title: 'Compte créé !',
+        message: 'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.'
+      });
+      setShowAlert(true);
       setIsLoginMode(true);
       setRegisterForm({
         username: '',
@@ -139,6 +168,20 @@ function Auth() {
         termsAccepted: false
       });
     }, 1000);
+  };
+
+  const closeAlert = () => {
+    setShowAlert(false);
+  };
+
+  const openTermsModal = (e) => {
+    e.preventDefault();
+    setShowTermsModal(true);
+  };
+
+  const openPrivacyModal = (e) => {
+    e.preventDefault();
+    setShowPrivacyModal(true);
   };
 
   return (
@@ -374,7 +417,7 @@ function Auth() {
               </div>
             </div>
 
-            <div className="terms">
+            <div className="terms-checkbox">
               <label>
                 <input 
                   type="checkbox" 
@@ -382,7 +425,12 @@ function Auth() {
                   checked={registerForm.termsAccepted}
                   onChange={handleRegisterChange}
                 />
-                J'accepte les <a href="#">conditions générales</a> et la <a href="#">politique de confidentialité</a>
+                <span className="terms-text">
+                  J'accepte les{' '}
+                  <a href="#" onClick={openTermsModal}>conditions générales</a>
+                  {' '}et la{' '}
+                  <a href="#" onClick={openPrivacyModal}>politique de confidentialité</a>
+                </span>
               </label>
             </div>
 
@@ -403,22 +451,119 @@ function Auth() {
             </button>
           </form>
         )}
-
-        <div className="auth-divider">
-          <span>ou</span>
-        </div>
-
-        <div className="social-login">
-          <button type="button" className="social-btn google">
-            <i className="fab fa-google"></i>
-            Continuer avec Google
-          </button>
-          <button type="button" className="social-btn facebook">
-            <i className="fab fa-facebook-f"></i>
-            Continuer avec Facebook
-          </button>
-        </div>
       </div>
+
+      {/* Alert Modal */}
+      <Alert
+        isOpen={showAlert}
+        onClose={closeAlert}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+      />
+
+      {/* Terms Modal */}
+      <Modal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} maxWidth="700px">
+        <div className="legal-modal-content">
+          <h2><i className="fas fa-file-contract"></i> Conditions Générales d'Utilisation</h2>
+          
+          <div className="legal-section">
+            <h3>1. Objet</h3>
+            <p>Les présentes conditions générales d'utilisation (CGU) régissent l'accès et l'utilisation de la plateforme SmartRide, service de mise en relation entre conducteurs et passagers pour le covoiturage.</p>
+          </div>
+
+          <div className="legal-section">
+            <h3>2. Inscription</h3>
+            <p>Pour utiliser nos services, vous devez créer un compte en fournissant des informations exactes et à jour. Vous êtes responsable de la confidentialité de vos identifiants de connexion.</p>
+          </div>
+
+          <div className="legal-section">
+            <h3>3. Utilisation du service</h3>
+            <p>SmartRide permet aux conducteurs de proposer des trajets et aux passagers de réserver des places. Les utilisateurs s'engagent à :</p>
+            <ul>
+              <li>Fournir des informations exactes sur les trajets</li>
+              <li>Respecter les horaires convenus</li>
+              <li>Adopter un comportement respectueux</li>
+              <li>Ne pas utiliser le service à des fins commerciales</li>
+            </ul>
+          </div>
+
+          <div className="legal-section">
+            <h3>4. Responsabilité</h3>
+            <p>SmartRide agit uniquement comme intermédiaire et ne peut être tenu responsable des incidents survenant pendant les trajets. Chaque utilisateur est responsable de son propre comportement.</p>
+          </div>
+
+          <div className="legal-section">
+            <h3>5. Modification des CGU</h3>
+            <p>SmartRide se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés de toute modification significative.</p>
+          </div>
+
+          <div className="legal-footer">
+            <p>Dernière mise à jour : Novembre 2025</p>
+            <button className="btn-close-modal" onClick={() => setShowTermsModal(false)}>
+              J'ai compris
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Privacy Modal */}
+      <Modal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} maxWidth="700px">
+        <div className="legal-modal-content">
+          <h2><i className="fas fa-shield-alt"></i> Politique de Confidentialité</h2>
+          
+          <div className="legal-section">
+            <h3>1. Collecte des données</h3>
+            <p>Nous collectons les données suivantes lors de votre inscription et utilisation :</p>
+            <ul>
+              <li>Nom d'utilisateur et adresse email</li>
+              <li>Informations de profil (rôle, préférences)</li>
+              <li>Données de trajets (départ, destination, horaires)</li>
+              <li>Historique des réservations</li>
+            </ul>
+          </div>
+
+          <div className="legal-section">
+            <h3>2. Utilisation des données</h3>
+            <p>Vos données sont utilisées pour :</p>
+            <ul>
+              <li>Permettre le fonctionnement du service de covoiturage</li>
+              <li>Faciliter la mise en relation entre conducteurs et passagers</li>
+              <li>Améliorer nos services</li>
+              <li>Vous contacter concernant votre compte</li>
+            </ul>
+          </div>
+
+          <div className="legal-section">
+            <h3>3. Protection des données</h3>
+            <p>Nous mettons en œuvre des mesures de sécurité appropriées pour protéger vos données personnelles contre tout accès non autorisé, modification, divulgation ou destruction.</p>
+          </div>
+
+          <div className="legal-section">
+            <h3>4. Vos droits</h3>
+            <p>Conformément à la réglementation, vous disposez des droits suivants :</p>
+            <ul>
+              <li>Droit d'accès à vos données</li>
+              <li>Droit de rectification</li>
+              <li>Droit à l'effacement</li>
+              <li>Droit à la portabilité</li>
+              <li>Droit d'opposition</li>
+            </ul>
+          </div>
+
+          <div className="legal-section">
+            <h3>5. Contact</h3>
+            <p>Pour toute question concernant vos données personnelles, vous pouvez nous contacter à : contact@smartride.com</p>
+          </div>
+
+          <div className="legal-footer">
+            <p>Dernière mise à jour : Novembre 2025</p>
+            <button className="btn-close-modal" onClick={() => setShowPrivacyModal(false)}>
+              J'ai compris
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

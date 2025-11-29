@@ -3,10 +3,8 @@ import './Modal.css';
 function Modal({ isOpen, onClose, children, maxWidth = '650px' }) {
   if (!isOpen) return null;
 
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+  const handleOverlayClick = () => {
+    onClose();
   };
 
   const stopPropagation = (e) => {
@@ -14,13 +12,14 @@ function Modal({ isOpen, onClose, children, maxWidth = '650px' }) {
   };
 
   return (
-    <div className="modal-overlay active" onClick={handleOverlayClick}>
+    <div className="modal-wrapper">
+      <div className="modal-backdrop" onClick={handleOverlayClick}></div>
       <div 
-        className="modal-content" 
+        className="modal-box" 
         onClick={stopPropagation}
         style={{ maxWidth }}
       >
-        <button className="modal-close" onClick={onClose}>
+        <button className="modal-close-btn" onClick={onClose}>
           <i className="fas fa-times"></i>
         </button>
         {children}
