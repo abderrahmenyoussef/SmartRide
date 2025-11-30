@@ -1,0 +1,35 @@
+services:
+  # Service Backend (API Node.js)
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: smartride-backend
+    restart: unless-stopped
+    env_file:
+      - ./Backend/.env
+    environment:
+      NODE_ENV: production
+    networks:
+      - smartride-network
+    ports:
+      - "3000:3000"
+
+  # Service Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smartride-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - smartride-network
+
+# Réseau isolé pour les services
+networks:
+  smartride-network:
+    driver: bridge

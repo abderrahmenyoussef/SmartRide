@@ -2430,11 +2430,58 @@ transition: all 0.3s ease;
 
 ### Prérequis
 
-- Node.js (v14 ou supérieur)
-- MongoDB (local ou Atlas)
+- Node.js (v18 ou supérieur)
+- MongoDB (Atlas recommandé)
 - npm ou yarn
+- Docker et Docker Compose (optionnel, recommandé)
 
-### Installation Backend
+---
+
+### 🐳 Installation avec Docker (Recommandé)
+
+La méthode la plus simple pour lancer l'application complète :
+
+1. **Cloner le repository**
+```bash
+git clone https://github.com/abderrahmenyoussef/SmartRide.git
+cd SmartRide
+```
+
+2. **Configurer les variables d'environnement**
+
+Créer un fichier `.env` dans le dossier `Backend/` :
+```env
+PORT=your_desired_port_number
+MONGODB_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_very_secure_jwt_secret_key_here
+OPENROUTER_URL=your_openrouter_endpoint
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_MODEL=your_model_name_here
+```
+
+3. **Construire et lancer les containers**
+```bash
+docker compose build
+docker compose up -d
+```
+
+4. **Accéder à l'application**
+- 🌐 **Frontend** : http://localhost:5173
+- 🔌 **Backend API** : http://localhost:3000
+
+5. **Commandes Docker utiles**
+```bash
+docker compose logs -f      # Voir les logs en temps réel
+docker compose ps           # Vérifier le statut des containers
+docker compose down         # Arrêter les containers
+docker compose build --no-cache  # Reconstruire les images
+```
+
+---
+
+### 💻 Installation Manuelle
+
+#### Installation Backend
 
 1. **Cloner le repository**
 ```bash
@@ -2451,7 +2498,7 @@ npm install
 
 Créer un fichier `.env` dans le dossier `Backend/` :
 ```env
-PORT=3000
+PORT=your_desired_port_number
 MONGODB_URI=your_mongodb_connection_string_here
 JWT_SECRET=your_very_secure_jwt_secret_key_here
 NODE_ENV=development
@@ -2481,7 +2528,7 @@ Le serveur démarre sur `http://localhost:3000`
 
 ---
 
-### Installation Frontend
+#### Installation Frontend
 
 1. **Naviguer vers le dossier frontend**
 ```bash
