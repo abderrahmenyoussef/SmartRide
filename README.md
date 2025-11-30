@@ -13,6 +13,7 @@
 - [Système d'authentification](#système-dauthentification)
 - [Système de gestion des trajets](#système-de-gestion-des-trajets)
 - [Système de chatbot IA - Support client](#système-de-chatbot-ia---support-client)
+- [Interface Frontend - Application React](#-interface-frontend---application-react)
 - [Documentation API](#documentation-api)
 - [Installation et démarrage](#installation-et-démarrage)
 - [Tests des endpoints](#tests-des-endpoints)
@@ -39,6 +40,11 @@ L'approche **API First** présente plusieurs avantages :
 ### Backend Framework & Runtime
 - **Node.js** - Environnement d'exécution JavaScript côté serveur
 - **Express.js v5.1.0** - Framework web minimaliste et flexible pour Node.js
+
+### Frontend Framework & Bibliothèques
+- **React v19.2.0** - Bibliothèque JavaScript pour la construction d'interfaces utilisateur
+- **React Router DOM v7.1.1** - Gestion du routage côté client
+- **Vite v7.2.4** - Build tool et serveur de développement ultra-rapide
 
 ### Base de données
 - **MongoDB** - Base de données NoSQL orientée documents
@@ -82,9 +88,14 @@ L'approche **API First** présente plusieurs avantages :
   - Répond aux questions sur les trajets, prix, disponibilités
 
 ### Développement
-- **nodemon v3.1.10** - Outil de développement
+- **nodemon v3.1.10** - Outil de développement backend
   - Redémarre automatiquement le serveur lors des modifications de code
   - Améliore la productivité en développement
+
+- **ESLint v9.39.1** - Linter pour le code frontend
+  - Maintient la qualité du code
+  - Règles React spécifiques
+  - Auto-fix des erreurs courantes
 
 ---
 
@@ -115,7 +126,41 @@ SmartRide/
 │   ├── .env.example              # Exemple de configuration environnement
 │   ├── server.js                 # Point d'entrée de l'application
 │   └── package.json              # Dépendances et scripts npm
-├── captures/                     # Screenshots des tests API
+├── frontend/
+│   ├── public/                   # Fichiers statiques publics
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Auth/            # Page d'authentification (connexion/inscription)
+│   │   │   │   ├── Auth.jsx
+│   │   │   │   └── Auth.css
+│   │   │   ├── Dashboard/       # Tableau de bord (conducteur/passager)
+│   │   │   │   ├── Dashboard.jsx
+│   │   │   │   └── Dashboard.css
+│   │   │   ├── Navigation/      # Barre de navigation globale
+│   │   │   │   ├── Navigation.jsx
+│   │   │   │   └── Navigation.css
+│   │   │   ├── TrajetForm/      # Formulaire création/modification trajet
+│   │   │   │   ├── TrajetForm.jsx
+│   │   │   │   └── TrajetForm.css
+│   │   │   └── shared/          # Composants réutilisables
+│   │   │       ├── index.js     # Barrel exports
+│   │   │       ├── Alert/       # Système d'alertes/confirmations
+│   │   │       │   ├── Alert.jsx
+│   │   │       │   └── Alert.css
+│   │   │       └── Modal/       # Modal générique réutilisable
+│   │   │           ├── Modal.jsx
+│   │   │           └── Modal.css
+│   │   ├── data/
+│   │   │   └── mockData.js      # Données de démonstration statiques
+│   │   ├── App.jsx              # Composant racine avec routage
+│   │   ├── App.css              # Styles globaux
+│   │   ├── main.jsx             # Point d'entrée React
+│   │   └── index.css            # Styles CSS de base
+│   ├── index.html               # Template HTML principal
+│   ├── vite.config.js           # Configuration Vite
+│   ├── eslint.config.js         # Configuration ESLint
+│   └── package.json             # Dépendances et scripts npm frontend
+├── captures/                     # Screenshots des tests API et de l'interface
 │   ├── 1.png                     # Test endpoint Register
 │   ├── 2.png                     # Test endpoint Login
 │   ├── 3.png                     # Test endpoint Verify
@@ -137,11 +182,19 @@ SmartRide/
 │   ├── 19.png                    # Test suppression trajet avec réservations
 │   ├── 20.png                    # Test suppression trajet sans réservations
 │   ├── 21.png                    # Test modification de réservation
-│   └── 22.png                    # Test chatbot IA - Support client
+│   ├── 22.png                    # Test chatbot IA - Support client
+│   ├── 23.png                    # Page de connexion frontend
+│   ├── 24.png                    # Page d'inscription frontend
+│   ├── 25.png                    # Dashboard conducteur - Vue 1
+│   ├── 26.png                    # Dashboard conducteur - Vue 2
+│   ├── 27.png                    # Formulaire création de trajet
+│   ├── 28.png                    # Dashboard passager - Vue 1
+│   ├── 29.png                    # Dashboard passager - Vue 2
+│   └── 30.png                    # Modal de réservation
 └── README.md                     # Documentation du projet
 ```
 
-### Description des dossiers
+### Description des dossiers Backend
 
 - **config/** : Contient les fichiers de configuration (base de données, etc.)
 - **controllers/** : Contient la logique métier de l'application
@@ -149,6 +202,18 @@ SmartRide/
 - **models/** : Contient les schémas de données Mongoose
 - **routes/** : Définit les endpoints de l'API et les associe aux controllers
 - **services/** : Services externes et clients API (OpenRouter pour le chatbot IA)
+
+### Description des dossiers Frontend
+
+- **components/** : Composants React organisés par fonctionnalité
+  - **Auth/** : Gestion de l'authentification (connexion/inscription)
+  - **Dashboard/** : Tableau de bord différencié (conducteur/passager)
+  - **Navigation/** : Menu de navigation global
+  - **TrajetForm/** : Formulaire de gestion des trajets
+  - **shared/** : Composants réutilisables (Alert, Modal)
+- **data/** : Données de démonstration pour la version statique
+- **App.jsx** : Composant racine avec configuration du routage React Router
+- **main.jsx** : Point d'entrée de l'application React
 
 ---
 
@@ -1579,6 +1644,788 @@ Authorization: Bearer [TOKEN_PASSAGER]
 
 ---
 
+---
+
+## 🎨 Interface Frontend - Application React
+
+SmartRide dispose d'une interface utilisateur moderne et réactive développée avec **React**, offrant une expérience utilisateur fluide et intuitive pour les conducteurs et les passagers.
+
+### Technologies Frontend utilisées
+
+#### Framework & Bibliothèques
+- **React v19.2.0** - Bibliothèque JavaScript pour la construction d'interfaces utilisateur
+  - Composants fonctionnels avec Hooks
+  - Gestion d'état local avec `useState`
+  - Rendu conditionnel et listes dynamiques
+  
+- **React Router DOM v7.1.1** - Gestion du routage côté client
+  - Navigation SPA (Single Page Application)
+  - Routes protégées et redirection
+  - Paramètres de route dynamiques
+  - Navigation programmatique
+
+#### Outils de développement
+- **Vite v7.2.4** - Build tool et serveur de développement
+  - Hot Module Replacement (HMR) ultra-rapide
+  - Build optimisé pour la production
+  - Support ESM natif
+  
+- **ESLint v9.39.1** - Linter pour maintenir la qualité du code
+  - Règles React spécifiques
+  - Hooks validation
+  - Auto-fix des erreurs courantes
+
+### Architecture du Frontend
+
+```
+frontend/
+├── public/                     # Fichiers statiques publics
+├── src/
+│   ├── components/
+│   │   ├── Auth/              # Page d'authentification
+│   │   │   ├── Auth.jsx       # Composant principal (connexion/inscription)
+│   │   │   └── Auth.css       # Styles de l'authentification
+│   │   ├── Dashboard/         # Tableau de bord principal
+│   │   │   ├── Dashboard.jsx  # Composant principal (conducteur/passager)
+│   │   │   └── Dashboard.css  # Styles du tableau de bord
+│   │   ├── Navigation/        # Barre de navigation
+│   │   │   ├── Navigation.jsx # Menu de navigation global
+│   │   │   └── Navigation.css # Styles de navigation
+│   │   ├── TrajetForm/        # Formulaire de création/modification de trajet
+│   │   │   ├── TrajetForm.jsx # Composant formulaire
+│   │   │   └── TrajetForm.css # Styles du formulaire
+│   │   └── shared/            # Composants réutilisables
+│   │       ├── index.js       # Export barrel pattern
+│   │       ├── Alert/         # Composant d'alerte/confirmation
+│   │       │   ├── Alert.jsx
+│   │       │   └── Alert.css
+│   │       └── Modal/         # Composant modal générique
+│   │           ├── Modal.jsx
+│   │           └── Modal.css
+│   ├── data/
+│   │   └── mockData.js        # Données de démonstration statiques
+│   ├── App.jsx                # Composant racine avec routage
+│   ├── App.css                # Styles globaux de l'application
+│   ├── main.jsx               # Point d'entrée React
+│   └── index.css              # Styles CSS de base
+├── index.html                 # Template HTML principal
+├── vite.config.js             # Configuration Vite
+├── eslint.config.js           # Configuration ESLint
+└── package.json               # Dépendances et scripts npm
+```
+
+---
+
+## 🧩 Composants principaux et hooks React
+
+### 1. **App.jsx - Composant racine**
+
+**Rôle :** Point d'entrée de l'application avec configuration du routage.
+
+**Technologies utilisées :**
+- `BrowserRouter` : Wrapper React Router pour le routage basé sur l'historique du navigateur
+- `Routes` & `Route` : Déclaration des routes de l'application
+- `Navigate` : Redirection programmatique
+
+**Structure de routage :**
+```javascript
+Routes:
+  / → Redirection vers /dashboard
+  /dashboard → Dashboard (tableau de bord principal)
+  /auth → Auth (connexion/inscription)
+  /trajets/nouveau → TrajetForm (création de trajet)
+  /trajets/modifier/:id → TrajetForm (modification de trajet avec ID dynamique)
+  /profile → Dashboard (profil utilisateur)
+```
+
+**Principes appliqués :**
+- ✅ **Routing déclaratif** : Routes définies de manière déclarative avec JSX
+- ✅ **Redirection par défaut** : Route racine redirige vers le dashboard
+- ✅ **Paramètres dynamiques** : Support des IDs dans les URLs (`/:id`)
+- ✅ **Composant layout** : Navigation persistante sur toutes les pages
+
+---
+
+### 2. **Auth.jsx - Page d'authentification**
+
+**Rôle :** Gère la connexion et l'inscription des utilisateurs avec validation en temps réel.
+
+#### **Hooks useState utilisés :**
+
+```javascript
+// Gestion des modes et états
+const [isLoginMode, setIsLoginMode] = useState(true);           // Basculer connexion/inscription
+const [showPassword, setShowPassword] = useState(false);         // Afficher/masquer mot de passe
+const [isLoading, setIsLoading] = useState(false);              // État de chargement
+const [errorMessage, setErrorMessage] = useState('');           // Messages d'erreur
+const [successMessage, setSuccessMessage] = useState('');       // Messages de succès
+
+// Gestion des modales
+const [showAlert, setShowAlert] = useState(false);              // Affichage des alertes
+const [alertConfig, setAlertConfig] = useState({...});          // Configuration de l'alerte
+const [showTermsModal, setShowTermsModal] = useState(false);    // Modal conditions générales
+const [showPrivacyModal, setShowPrivacyModal] = useState(false); // Modal politique de confidentialité
+
+// Formulaires avec objets
+const [loginForm, setLoginForm] = useState({
+  email: '',
+  password: '',
+  rememberMe: false
+});
+
+const [registerForm, setRegisterForm] = useState({
+  username: '',
+  email: '',
+  password: '',
+  role: 'passager',           // Valeur par défaut : passager
+  termsAccepted: false
+});
+
+// Validation tactile (touched fields)
+const [loginTouched, setLoginTouched] = useState({
+  email: false,
+  password: false
+});
+
+const [registerTouched, setRegisterTouched] = useState({
+  username: false,
+  email: false,
+  password: false
+});
+```
+
+#### **Hook useNavigate utilisé :**
+
+```javascript
+const navigate = useNavigate();
+
+// Redirection après connexion réussie
+setTimeout(() => {
+  navigate('/dashboard');
+}, 1000);
+```
+
+**Utilité :** Navigation programmatique vers le dashboard après authentification.
+
+#### **Fonctionnalités implémentées :**
+
+**Validation en temps réel :**
+- ✅ **Validation d'email** : Regex pour vérifier le format email
+- ✅ **Validation de longueur** : Username (min 3), Password (min 6)
+- ✅ **Validation conditionnelle** : Affichage des erreurs uniquement si le champ a été touché
+- ✅ **Validation de checkbox** : Acceptation des conditions requise pour l'inscription
+
+**Helpers de validation :**
+```javascript
+const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const getLoginErrors = () => {
+  const errors = {};
+  if (!loginForm.email) errors.email = 'Email est obligatoire';
+  else if (!isEmailValid(loginForm.email)) errors.email = 'Format d\'email invalide';
+  if (!loginForm.password) errors.password = 'Mot de passe est obligatoire';
+  return errors;
+};
+```
+
+**Gestion des événements :**
+- ✅ **onChange** : Mise à jour de l'état du formulaire
+- ✅ **onBlur** : Marquage du champ comme "touché" pour validation
+- ✅ **onSubmit** : Validation complète et soumission du formulaire
+
+**Pattern de mise à jour d'état immutable :**
+```javascript
+const handleLoginChange = (e) => {
+  const { name, value, type, checked } = e.target;
+  setLoginForm(prev => ({
+    ...prev,                                          // Spread operator : copie l'état précédent
+    [name]: type === 'checkbox' ? checked : value    // Computed property : mise à jour dynamique
+  }));
+};
+```
+
+**Principes React appliqués :**
+- ✅ **Immutabilité** : Utilisation du spread operator `...prev`
+- ✅ **Computed properties** : `[name]: value` pour updates dynamiques
+- ✅ **Conditional rendering** : Affichage conditionnel des erreurs avec `&&`
+- ✅ **Controlled components** : Inputs contrôlés par l'état React
+- ✅ **Event delegation** : Un seul handler pour tous les champs d'un formulaire
+
+#### **Captures d'écran - Authentification**
+
+![Page de connexion](./captures/23.png)
+*Page de connexion avec validation en temps réel et gestion des erreurs*
+
+![Page d'inscription](./captures/24.png)
+*Page d'inscription avec sélection de rôle (conducteur/passager) et validation des conditions générales*
+
+---
+
+### 3. **Dashboard.jsx - Tableau de bord principal**
+
+**Rôle :** Interface principale différenciée selon le rôle (conducteur/passager).
+
+#### **Hooks useState utilisés :**
+
+```javascript
+// Données utilisateur et trajets
+const [currentUser] = useState(mockUser);                      // Utilisateur connecté
+const [availableRides] = useState(mockRides);                  // Trajets disponibles (passagers)
+const [driverRides, setDriverRides] = useState(mockDriverRides); // Trajets du conducteur
+const [userReservations, setUserReservations] = useState(mockReservations); // Réservations du passager
+
+// Recherche de trajets
+const [searchDeparture, setSearchDeparture] = useState('');    // Ville de départ
+const [searchArrival, setSearchArrival] = useState('');        // Ville d'arrivée
+const [searchDate, setSearchDate] = useState('');              // Date de recherche
+
+// Gestion des modales
+const [showRideDetails, setShowRideDetails] = useState(false); // Modal détails trajet
+const [showConfirmation, setShowConfirmation] = useState(false); // Modal confirmation réservation
+const [selectedRide, setSelectedRide] = useState(null);        // Trajet sélectionné
+const [placesToReserve, setPlacesToReserve] = useState(1);     // Nombre de places à réserver
+
+// Système d'alertes
+const [showAlert, setShowAlert] = useState(false);
+const [alertConfig, setAlertConfig] = useState({
+  type: 'success',              // Types : 'success', 'error', 'warning', 'confirm'
+  title: '',
+  message: '',
+  onConfirm: null,             // Callback pour confirmation
+  onCancel: null               // Callback pour annulation
+});
+```
+
+#### **Hook useNavigate utilisé :**
+
+```javascript
+const navigate = useNavigate();
+
+// Navigation vers formulaire de création
+const proposeRide = () => {
+  navigate('/trajets/nouveau');
+};
+
+// Navigation vers formulaire de modification avec paramètre
+const editRide = (ride) => {
+  navigate(`/trajets/modifier/${ride.id}`);
+};
+```
+
+**Utilité :** Navigation programmatique vers les formulaires avec passage de paramètres.
+
+#### **Fonctionnalités implémentées :**
+
+**Vue Conducteur :**
+- ✅ **Gestion des trajets proposés** : Affichage, modification, suppression
+- ✅ **Création de nouveaux trajets** : Bouton redirigeant vers le formulaire
+- ✅ **Protection contre suppression** : Confirmation avant suppression
+- ✅ **Statistiques** : Nombre de réservations par trajet
+
+**Vue Passager :**
+- ✅ **Recherche de trajets** : Filtres par départ, arrivée, date
+- ✅ **Liste des trajets disponibles** : Affichage avec détails conducteur
+- ✅ **Réservation de places** : Modal de confirmation avec sélection du nombre de places
+- ✅ **Gestion des réservations** : Affichage et annulation des réservations existantes
+
+**Fonctions utilitaires :**
+```javascript
+// Formatage de date intelligent
+const getDay = (date) => new Date(date).getDate();
+const getMonthName = (date) => {
+  const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+  return months[new Date(date).getMonth()];
+};
+
+// Salutation contextuelle basée sur l'heure
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bonjour';
+  if (hour < 18) return 'Bon après-midi';
+  return 'Bonsoir';
+};
+```
+
+**Pattern de mise à jour d'état avec filtrage :**
+```javascript
+// Suppression d'un trajet avec filter
+const deleteRide = (ride) => {
+  showCustomAlert({
+    type: 'confirm',
+    title: 'Supprimer le trajet',
+    message: 'Êtes-vous sûr de vouloir supprimer ce trajet ?',
+    onConfirm: () => {
+      setDriverRides(prev => prev.filter(r => r.id !== ride.id)); // Filter immutable
+      // Afficher confirmation de succès
+    }
+  });
+};
+
+// Annulation de réservation
+const cancelReservation = (reservation) => {
+  setUserReservations(prev => prev.filter(r => r.reservationId !== reservation.reservationId));
+};
+```
+
+**Pattern d'ajout d'élément dans un tableau :**
+```javascript
+// Ajout d'une nouvelle réservation
+const confirmReservation = () => {
+  if (selectedRide) {
+    const newReservation = {
+      ...selectedRide,                    // Spread des données du trajet
+      reservationId: `r${Date.now()}`,    // ID unique basé sur timestamp
+      places: placesToReserve,
+      reservationDate: new Date()
+    };
+    setUserReservations(prev => [...prev, newReservation]); // Spread pour immutabilité
+  }
+};
+```
+
+**Système d'alertes personnalisé :**
+```javascript
+const showCustomAlert = (config) => {
+  setAlertConfig(config);
+  setShowAlert(true);
+};
+
+// Utilisation avec callback
+showCustomAlert({
+  type: 'confirm',
+  title: 'Confirmation',
+  message: 'Voulez-vous vraiment continuer ?',
+  onConfirm: () => {
+    // Action à exécuter si confirmé
+  },
+  onCancel: () => {
+    // Action à exécuter si annulé
+  }
+});
+```
+
+**Principes React appliqués :**
+- ✅ **Conditional rendering** : Affichage différencié conducteur/passager avec opérateur ternaire
+- ✅ **Array mapping** : Rendu de listes avec `.map()`
+- ✅ **Event handling** : Gestion des clics avec `onClick` et `stopPropagation`
+- ✅ **Lifting state up** : État partagé entre composants via props
+- ✅ **Composition de composants** : Réutilisation de Modal et Alert
+
+#### **Captures d'écran - Dashboard**
+
+![Dashboard Conducteur - Vue 1](./captures/25.png)
+*Vue conducteur : profil, statistiques et recherche de trajets*
+
+![Dashboard Conducteur - Vue 2](./captures/26.png)
+*Vue conducteur : liste des trajets proposés avec actions de modification et suppression*
+
+![Formulaire de création de trajet](./captures/27.png)
+*Formulaire de création/modification de trajet avec validation en temps réel*
+
+![Dashboard Passager - Vue 1](./captures/28.png)
+*Vue passager : recherche et liste des trajets disponibles*
+
+![Dashboard Passager - Vue 2](./captures/29.png)
+*Vue passager : mes réservations avec possibilité d'annulation*
+
+![Modal de réservation](./captures/30.png)
+*Modal de confirmation de réservation avec sélection du nombre de places*
+
+---
+
+### 4. **Navigation.jsx - Barre de navigation**
+
+**Rôle :** Menu de navigation global persistant sur toutes les pages.
+
+#### **Hooks utilisés :**
+
+```javascript
+const [isAuthenticated, setIsAuthenticated] = useState(true);  // État d'authentification
+const [currentUser] = useState(mockUser);                      // Données utilisateur
+const location = useLocation();                                // Hook React Router
+```
+
+#### **Hook useLocation utilisé :**
+
+```javascript
+import { useLocation } from 'react-router-dom';
+
+const location = useLocation();
+
+// Mise en surbrillance du lien actif
+<Link 
+  to="/dashboard" 
+  className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+>
+  Accueil
+</Link>
+```
+
+**Utilité :** Détecter la route active pour appliquer des styles de navigation.
+
+**Fonctionnalités :**
+- ✅ **Menu responsive** : Adaptation mobile/desktop
+- ✅ **Menu déroulant utilisateur** : Profil, mes trajets, déconnexion
+- ✅ **Highlight de route active** : Indicateur visuel de la page courante
+- ✅ **Gestion de session** : Affichage conditionnel selon l'état d'authentification
+
+**Principes React appliqués :**
+- ✅ **Conditional rendering** : Affichage menu utilisateur ou bouton connexion
+- ✅ **Dynamic className** : Classes CSS conditionnelles avec template literals
+- ✅ **React Router integration** : Utilisation de `Link` et `useLocation`
+
+---
+
+### 5. **TrajetForm.jsx - Formulaire de trajet**
+
+**Rôle :** Création et modification de trajets pour les conducteurs.
+
+#### **Hooks utilisés :**
+
+```javascript
+const navigate = useNavigate();
+const { id } = useParams();                                    // Hook pour récupérer paramètre URL
+const isEditMode = !!id;                                       // Boolean : true si modification
+
+const [trajet, setTrajet] = useState(() => getInitialTrajet(id)); // Lazy initialization
+const [errors, setErrors] = useState([]);                      // Tableau d'erreurs de validation
+const [isLoading, setIsLoading] = useState(false);            // État de soumission
+const [showAlert, setShowAlert] = useState(false);
+const [alertConfig, setAlertConfig] = useState({...});
+```
+
+#### **Hook useParams utilisé :**
+
+```javascript
+import { useParams } from 'react-router-dom';
+
+const { id } = useParams();  // Extraction du paramètre :id de l'URL
+
+// Fonction d'initialisation basée sur le paramètre
+const getInitialTrajet = (id) => {
+  if (id) {
+    const existingTrajet = mockDriverRides.find(r => r.id === parseInt(id));
+    if (existingTrajet) {
+      return {
+        depart: existingTrajet.departure,
+        destination: existingTrajet.arrival,
+        // ... mapping des données existantes
+      };
+    }
+  }
+  // Retourne un objet vide si création
+  return { depart: '', destination: '', ... };
+};
+```
+
+**Utilité :** Différenciation création/modification selon la présence d'un ID dans l'URL.
+
+#### **Lazy initialization avec useState :**
+
+```javascript
+// ❌ Mauvaise pratique : fonction appelée à chaque render
+const [trajet, setTrajet] = useState(getInitialTrajet(id));
+
+// ✅ Bonne pratique : fonction appelée uniquement à l'initialisation
+const [trajet, setTrajet] = useState(() => getInitialTrajet(id));
+```
+
+**Avantage :** Optimisation des performances, la fonction coûteuse n'est exécutée qu'une fois.
+
+#### **Validation côté client :**
+
+```javascript
+const validateForm = () => {
+  const newErrors = [];
+
+  // Validation des champs requis
+  if (!trajet.depart.trim()) newErrors.push('Le lieu de départ est obligatoire');
+  if (!trajet.destination.trim()) newErrors.push('La destination est obligatoire');
+  
+  // Validation des plages de valeurs
+  if (!trajet.placesDisponibles || trajet.placesDisponibles < 1 || trajet.placesDisponibles > 6) {
+    newErrors.push('Le nombre de places doit être entre 1 et 6');
+  }
+  
+  if (!trajet.prix || trajet.prix <= 0) {
+    newErrors.push('Le prix doit être supérieur à 0');
+  }
+
+  // Validation de date (pas dans le passé)
+  const selectedDate = new Date(trajet.dateDepart);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (selectedDate < today) {
+    newErrors.push('La date de départ ne peut pas être dans le passé');
+  }
+
+  setErrors(newErrors);
+  return newErrors.length === 0;
+};
+```
+
+**Gestion de soumission asynchrone simulée :**
+```javascript
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (!validateForm()) return;
+
+  setIsLoading(true);
+
+  // Simulation d'appel API
+  setTimeout(() => {
+    setIsLoading(false);
+    showCustomAlert(
+      'success',
+      isEditMode ? 'Trajet modifié !' : 'Trajet créé !',
+      'Votre trajet a été publié avec succès.'
+    );
+  }, 1500);
+};
+```
+
+**Fonctionnalités :**
+- ✅ **Mode création/modification** : Un seul composant pour deux usages
+- ✅ **Validation complète** : Champs requis, formats, plages de valeurs
+- ✅ **Feedback utilisateur** : Affichage des erreurs et états de chargement
+- ✅ **Protection date** : Empêche la sélection de dates passées avec `min={getTodayDate()}`
+- ✅ **Navigation post-soumission** : Redirection vers dashboard après succès
+
+**Principes React appliqués :**
+- ✅ **Lazy initialization** : Optimisation du useState
+- ✅ **useParams hook** : Récupération de paramètres d'URL
+- ✅ **Form validation** : Validation avant soumission
+- ✅ **Loading states** : Gestion des états asynchrones
+- ✅ **Conditional UI** : Bouton et titre différents selon le mode
+
+---
+
+### 6. **Composants réutilisables (shared/)**
+
+#### **Alert.jsx - Composant d'alerte/confirmation**
+
+**Rôle :** Système d'alertes modal réutilisable pour notifications et confirmations.
+
+```javascript
+function Alert({ 
+  isOpen,           // Boolean : visibilité
+  onClose,          // Callback : fermeture
+  onConfirm,        // Callback : confirmation (optionnel)
+  type = 'success', // Type : 'success' | 'error' | 'warning' | 'confirm' | 'info'
+  title,            // Titre de l'alerte
+  message           // Message de l'alerte
+}) {
+  if (!isOpen) return null;  // Early return si fermé
+
+  const getIcon = () => {
+    switch (type) {
+      case 'success': return 'fa-check-circle';
+      case 'error': return 'fa-times-circle';
+      case 'warning': return 'fa-exclamation-triangle';
+      case 'confirm': return 'fa-question-circle';
+      case 'info': return 'fa-info-circle';
+      default: return 'fa-check-circle';
+    }
+  };
+
+  return (
+    <div className="alert-modal">
+      <div className="alert-overlay" onClick={onClose}></div>
+      <div className={`alert-box alert-${type}`}>  {/* Classe dynamique */}
+        <div className="alert-icon">
+          <i className={`fas ${getIcon()}`}></i>
+        </div>
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <div className="alert-actions">
+          {type === 'confirm' ? (
+            <>
+              <button onClick={onClose}>Annuler</button>
+              <button onClick={onConfirm}>Confirmer</button>
+            </>
+          ) : (
+            <button onClick={onClose}>OK</button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**Principes appliqués :**
+- ✅ **Conditional rendering** : `if (!isOpen) return null`
+- ✅ **Props destructuring** : Extraction directe des props
+- ✅ **Default props** : `type = 'success'`
+- ✅ **Dynamic className** : Classes CSS basées sur le type
+- ✅ **Event callbacks** : `onClose` et `onConfirm`
+
+#### **Modal.jsx - Modal générique**
+
+**Rôle :** Conteneur modal réutilisable pour tout contenu.
+
+```javascript
+function Modal({ isOpen, onClose, children, maxWidth = '650px' }) {
+  if (!isOpen) return null;
+
+  const handleOverlayClick = () => onClose();
+  
+  const stopPropagation = (e) => {
+    e.stopPropagation();  // Empêche fermeture si clic sur contenu
+  };
+
+  return (
+    <div className="modal-wrapper">
+      <div className="modal-backdrop" onClick={handleOverlayClick}></div>
+      <div 
+        className="modal-box" 
+        onClick={stopPropagation}
+        style={{ maxWidth }}  // Style inline dynamique
+      >
+        <button className="modal-close-btn" onClick={onClose}>
+          <i className="fas fa-times"></i>
+        </button>
+        {children}  {/* Composition de composants */}
+      </div>
+    </div>
+  );
+}
+```
+
+**Principes appliqués :**
+- ✅ **Children prop** : Composition de composants
+- ✅ **Event propagation** : Utilisation de `stopPropagation`
+- ✅ **Inline styles** : Styles dynamiques avec props
+- ✅ **Component composition** : Wrapper réutilisable
+
+#### **Barrel exports (index.js)**
+
+```javascript
+export { default as Modal } from './Modal/Modal';
+export { default as Alert } from './Alert/Alert';
+```
+
+**Avantage :** Import simplifié dans les composants :
+```javascript
+import { Modal, Alert } from '../shared';  // Au lieu de 2 imports séparés
+```
+
+---
+
+## 📊 Gestion des données - mockData.js
+
+**Rôle :** Centralisation des données de démonstration pour version statique.
+
+**Structure des données :**
+
+```javascript
+// Utilisateur connecté
+export const mockUser = {
+  id: '1',
+  username: 'Ahmed',
+  email: 'ahmed@example.com',
+  role: 'conducteur',  // Peut être basculé pour tester les vues
+  rating: 4.5,
+  isVerified: true
+};
+
+// Statistiques globales
+export const mockStats = {
+  co2Saved: 1250,      // kg de CO2 économisé
+  activeUsers: 3500,   // Utilisateurs actifs
+  sharedRides: 5200    // Trajets partagés
+};
+
+// Trajets disponibles (vue passager)
+export const mockRides = [
+  {
+    id: '1',
+    departure: 'Tunis',
+    arrival: 'Sousse',
+    date: new Date(2025, 11, 15),
+    time: '08:30',
+    price: 25,
+    availableSeats: 3,
+    driverName: 'Thomas D.',
+    driverRating: 4.8,
+    description: 'Départ du centre-ville...'
+  },
+  // ... autres trajets
+];
+
+// Trajets du conducteur
+export const mockDriverRides = [ /* ... */ ];
+
+// Réservations du passager
+export const mockReservations = [ /* ... */ ];
+
+// Témoignages
+export const mockTestimonials = [ /* ... */ ];
+
+// Helper : formatage de date
+export const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+```
+
+**Avantages de cette approche :**
+- ✅ **Séparation des préoccupations** : Données isolées de la logique UI
+- ✅ **Testabilité** : Facile de tester l'UI avec différentes données
+- ✅ **Maintenance** : Un seul fichier à modifier pour changer les données
+- ✅ **Type safety** : Structure cohérente pour tous les composants
+
+---
+
+## 🎨 Principes CSS et Design
+
+### Architecture CSS
+
+**Convention de nommage :** BEM-like (Block Element Modifier)
+
+```css
+/* Block */
+.dashboard-container { }
+
+/* Element */
+.dashboard-container__header { }
+
+/* Modifier */
+.dashboard-container--loading { }
+```
+
+### Responsive Design
+
+- ✅ **Mobile-first approach** : Styles de base pour mobile, media queries pour desktop
+- ✅ **Flexbox et Grid** : Layouts modernes et flexibles
+- ✅ **CSS Variables** : Thème centralisé pour cohérence visuelle
+
+### Animations et transitions
+
+```css
+/* Transitions douces */
+transition: all 0.3s ease;
+
+/* Hover effects */
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Loading spinners */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+```
+
+---
+
 ## 🚀 Installation et démarrage
 
 ### Prérequis
@@ -1587,7 +2434,7 @@ Authorization: Bearer [TOKEN_PASSAGER]
 - MongoDB (local ou Atlas)
 - npm ou yarn
 
-### Installation
+### Installation Backend
 
 1. **Cloner le repository**
 ```bash
@@ -1608,6 +2455,9 @@ PORT=3000
 MONGODB_URI=your_mongodb_connection_string_here
 JWT_SECRET=your_very_secure_jwt_secret_key_here
 NODE_ENV=development
+OPENROUTER_URL=your_openrouter_endpoint
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_MODEL=your_model_name_here
 ```
 
 **Générer un JWT_SECRET sécurisé :**
@@ -1631,7 +2481,33 @@ Le serveur démarre sur `http://localhost:3000`
 
 ---
 
+### Installation Frontend
 
+1. **Naviguer vers le dossier frontend**
+```bash
+cd ../frontend
+```
+
+2. **Installer les dépendances**
+```bash
+npm install
+```
+
+3. **Démarrer le serveur de développement Vite**
+```bash
+npm run dev
+```
+
+L'application frontend démarre sur `http://localhost:5173`
+
+**Autres commandes disponibles :**
+```bash
+npm run build    # Build de production
+npm run preview  # Prévisualisation du build
+npm run lint     # Linter le code
+```
+
+---
 
 ## 🔒 Sécurité
 
