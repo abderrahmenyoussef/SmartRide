@@ -6,17 +6,17 @@
 
 ## 📋 Table des matières
 
-- [À propos du projet](#à-propos-du-projet)
+- [À propos du projet](#-à-propos-du-projet)
 - [Méthodologie : API First](#méthodologie--api-first)
-- [Technologies utilisées](#technologies-utilisées)
-- [Architecture du projet](#architecture-du-projet)
-- [Système d'authentification](#système-dauthentification)
-- [Système de gestion des trajets](#système-de-gestion-des-trajets)
-- [Système de chatbot IA - Support client](#système-de-chatbot-ia---support-client)
+- [Technologies utilisées](#%EF%B8%8F-technologies-utilisées)
+- [Architecture du projet](#-architecture-du-projet)
+- [Système d'authentification](#-système-dauthentification)
+- [Système de gestion des trajets](#-système-de-gestion-des-trajets)
+- [Système de chatbot IA - Support client](#-système-de-chatbot-ia---support-client)
 - [Interface Frontend - Application React](#-interface-frontend---application-react)
-- [Documentation API](#documentation-api)
-- [Installation et démarrage](#installation-et-démarrage)
-- [Tests des endpoints](#tests-des-endpoints)
+- [Documentation API](#-documentation-api---gestion-des-trajets)
+- [Installation et démarrage](#-installation-et-démarrage)
+- [Sécurité](#-sécurité)
 
 ---
 
