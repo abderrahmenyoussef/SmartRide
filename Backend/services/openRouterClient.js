@@ -75,7 +75,15 @@ async function sendMessage(messages = [], options = {}) {
     
     if (error.response) {
       console.error('OpenRouter API error:', error.response.status, error.response.data);
-      throw new Error(`Erreur OpenRouter (${error.response.status}): ${JSON.stringify(error.response.data)}`);
+      // Handle rate limit specially if present
+      if (error.response.status === 429) {
+        const rateLimitError = new Error(`Le modèle ${OPENROUTER_MODEL} est temporairement limité ou saturé (429). Réessayez dans quelques instants. Détails: ${error.response.data?.error?.message || JSON.stringify(error.response.data)}`);
+        rateLimitError.statusCode = 429;
+        throw rateLimitError;
+      }
+      const apiError = new Error(`Erreur OpenRouter (${error.response.status}) avec le modèle ${error.response.data?.model || OPENROUTER_MODEL}: ${JSON.stringify(error.response.data)}`);
+      apiError.statusCode = error.response.status;
+      throw apiError;
     }
     
     console.error('OpenRouter client error:', error.message || error);
