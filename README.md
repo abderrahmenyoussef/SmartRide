@@ -83,7 +83,7 @@ L'approche **API First** présente plusieurs avantages :
 
 ### Intelligence Artificielle
 - **OpenRouter API** - Plateforme d'accès aux modèles IA
-  - Intégration du modèle **x-ai/grok-4.1-fast:free** (Grok)
+  - Intégration du modèle **google/gemini-2.0-flash-exp:free** (Gemini)
   - Chatbot intelligent pour le support client
   - Répond aux questions sur les trajets, prix, disponibilités
 
@@ -121,7 +121,7 @@ SmartRide/
 │   │   ├── trajetRoutes.js       # Définition des routes de trajets
 │   │   └── aiRoutes.js           # Définition des routes du chatbot IA
 │   ├── services/
-│   │   └── openRouterClient.js   # Client HTTP pour l'API OpenRouter (Grok)
+│   │   └── openRouterClient.js   # Client HTTP pour l'API OpenRouter (chatbot IA)
 │   ├── .env                      # Variables d'environnement (non versionné)
 │   ├── .env.example              # Exemple de configuration environnement
 │   ├── server.js                 # Point d'entrée de l'application
@@ -666,7 +666,7 @@ DELETE /api/trajets/:trajetId/reservations/:reservationId    → protect → can
 
 ## 🤖 Système de chatbot IA - Support client
 
-SmartRide intègre un **chatbot intelligent** propulsé par **Grok** (x-ai/grok-4.1-fast:free) via l'API OpenRouter. Ce chatbot sert de support client automatisé et peut répondre aux questions des utilisateurs concernant les trajets disponibles, les prix, les itinéraires, etc.
+SmartRide intègre un **chatbot intelligent** propulsé par **Gemini** (google/gemini-2.0-flash-exp:free) via l'API OpenRouter. Ce chatbot sert de support client automatisé et peut répondre aux questions des utilisateurs concernant les trajets disponibles, les prix, les itinéraires, etc.
 
 ### Fonctionnalités du chatbot
 
@@ -680,7 +680,7 @@ SmartRide intègre un **chatbot intelligent** propulsé par **Grok** (x-ai/grok-
 
 #### 1. **Client OpenRouter (services/openRouterClient.js)**
 
-Service qui communique avec l'API OpenRouter pour interroger le modèle Grok.
+Service qui communique avec l'API OpenRouter pour interroger le modèle Gemini.
 
 **Configuration (via `.env`) :**
 ```javascript
