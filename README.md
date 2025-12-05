@@ -83,7 +83,7 @@ L'approche **API First** présente plusieurs avantages :
 
 ### Intelligence Artificielle
 - **OpenRouter API** - Plateforme d'accès aux modèles IA
-  - Intégration du modèle **google/gemini-2.0-flash-exp:free** (Gemini)
+  - Intégration du modèle **mistralai/mistral-small-3.1-24b-instruct:free** (Mistral)
   - Chatbot intelligent pour le support client
   - Répond aux questions sur les trajets, prix, disponibilités
 
@@ -666,7 +666,7 @@ DELETE /api/trajets/:trajetId/reservations/:reservationId    → protect → can
 
 ## 🤖 Système de chatbot IA - Support client
 
-SmartRide intègre un **chatbot intelligent** propulsé par **Gemini** (google/gemini-2.0-flash-exp:free) via l'API OpenRouter. Ce chatbot sert de support client automatisé et peut répondre aux questions des utilisateurs concernant les trajets disponibles, les prix, les itinéraires, etc.
+SmartRide intègre un **chatbot intelligent** propulsé par **Mistralai** (mistralai/mistral-small-3.1-24b-instruct:free) via l'API OpenRouter. Ce chatbot sert de support client automatisé et peut répondre aux questions des utilisateurs concernant les trajets disponibles, les prix, les itinéraires, etc.
 
 ### Fonctionnalités du chatbot
 
@@ -680,7 +680,7 @@ SmartRide intègre un **chatbot intelligent** propulsé par **Gemini** (google/g
 
 #### 1. **Client OpenRouter (services/openRouterClient.js)**
 
-Service qui communique avec l'API OpenRouter pour interroger le modèle Gemini.
+Service qui communique avec l'API OpenRouter pour interroger le modèle Mistralai.
 
 **Configuration (via `.env`) :**
 ```javascript
