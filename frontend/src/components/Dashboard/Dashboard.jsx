@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../../api/client';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth'
 import { Alert } from '../shared';
 import './Dashboard.css';
 
@@ -33,7 +33,9 @@ function Dashboard() {
   const { user, token, logout } = useAuth();
 
   const [availableRides, setAvailableRides] = useState([]);
+  const [baseRides, setBaseRides] = useState([]);
   const [driverRides, setDriverRides] = useState([]);
+  const [driverBaseRides, setDriverBaseRides] = useState([]);
   const [userReservations, setUserReservations] = useState([]);
   const [statsTrajets, setStatsTrajets] = useState([]);
 
@@ -105,18 +107,24 @@ function Dashboard() {
     };
   };
 
-  const loadAvailableRides = async (filters = {}, updateStats = false) => {
-    const res = await apiRequest('/trajets', { token, params: filters });
+  const loadAllRides = async (updateStats = false) => {
+    const res = await apiRequest('/trajets', { token });
     const normalized = res.trajets.map(normalizeRide);
-    setAvailableRides(normalized);
+    setBaseRides(normalized);
     if (updateStats) {
       setStatsTrajets(res.trajets);
     }
+    // Ne pas écraser la vue filtrée si on est en recherche; la recherche contrôle availableRides
+    setAvailableRides(normalized);
+    return normalized;
   };
 
   const loadDriverRides = async () => {
     const res = await apiRequest('/trajets/mes-trajets', { token });
-    setDriverRides(res.trajets.map(normalizeRide));
+    const normalized = res.trajets.map(normalizeRide);
+    setDriverBaseRides(normalized);
+    setDriverRides(normalized);
+    return normalized;
   };
 
   const loadReservations = async () => {
@@ -150,7 +158,7 @@ function Dashboard() {
     setLoading(true);
     setError('');
     try {
-      await loadAvailableRides({}, true);
+      await loadAllRides(true);
       if (user.role === 'conducteur') {
         await loadDriverRides();
       } else {
@@ -168,6 +176,54 @@ function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, user?.role]);
 
+  const toYMD = (value) => {
+    if (!value) return null;
+    try {
+      // Gérer le format mm/dd/yy ou mm/dd/yyyy
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        // Essayer de parser manuellement si c'est mm/dd/yy
+        const parts = value.split('/');
+        if (parts.length === 3) {
+          let year = parseInt(parts[2]);
+          // Convertir yy en yyyy si nécessaire
+          if (year < 100) {
+            year += 2000;
+          }
+          const month = parseInt(parts[0]) - 1; // Les mois sont 0-indexés
+          const day = parseInt(parts[1]);
+          const correctedDate = new Date(year, month, day);
+          if (!isNaN(correctedDate.getTime())) {
+            return correctedDate.toISOString().split('T')[0];
+          }
+        }
+        return null;
+      }
+      return date.toISOString().split('T')[0];
+    } catch {
+      return null;
+    }
+  };
+
+  const filterRides = (rides, filters) => {
+    const { depart, destination, dateDepart } = filters;
+    if (!depart && !destination && !dateDepart) return rides;
+
+    const targetDate = toYMD(dateDepart);
+
+    return rides.filter((ride) => {
+      const matchDepart = depart
+        ? ride.departure?.toLowerCase().includes(depart.toLowerCase())
+        : true;
+      const matchDestination = destination
+        ? ride.arrival?.toLowerCase().includes(destination.toLowerCase())
+        : true;
+      const matchDate = targetDate ? toYMD(ride.date) === targetDate : true;
+
+      return matchDepart && matchDestination && matchDate;
+    });
+  };
+
   const searchRides = async () => {
     setIsBusy(true);
     try {
@@ -176,7 +232,18 @@ function Dashboard() {
         destination: searchArrival.trim(),
         dateDepart: searchDate
       };
-      await loadAvailableRides(filters, false);
+
+      const hasFilters = filters.depart || filters.destination || filters.dateDepart;
+
+      if (user?.role === 'conducteur') {
+        const source = driverBaseRides.length ? driverBaseRides : await loadDriverRides();
+        const filtered = hasFilters ? filterRides(source, filters) : source;
+        setDriverRides(filtered);
+      } else {
+        const source = baseRides.length ? baseRides : await loadAllRides(false);
+        const filtered = hasFilters ? filterRides(source, filters) : source;
+        setAvailableRides(filtered);
+      }
     } catch (err) {
       handleAuthError(err);
     } finally {
@@ -250,7 +317,7 @@ function Dashboard() {
         data: { places: placesToReserve },
         token
       });
-      await Promise.all([loadAvailableRides({}, true), loadReservations()]);
+      await Promise.all([loadAllRides(true), loadReservations()]);
       closeConfirmation();
       showCustomAlert({
         type: 'success',

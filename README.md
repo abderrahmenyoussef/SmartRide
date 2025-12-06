@@ -150,8 +150,8 @@ SmartRide/
 │   │   │       └── Modal/       # Modal générique réutilisable
 │   │   │           ├── Modal.jsx
 │   │   │           └── Modal.css
-│   │   ├── data/
-│   │   │   └── mockData.js      # Données de démonstration statiques
+│   │   ├── Chat/                # Widget de chat IA flottant
+│   │   │   └── ChatWidget.jsx
 │   │   ├── App.jsx              # Composant racine avec routage
 │   │   ├── App.css              # Styles globaux
 │   │   ├── main.jsx             # Point d'entrée React
@@ -191,6 +191,7 @@ SmartRide/
 │   ├── 28.png                    # Dashboard passager - Vue 1
 │   ├── 29.png                    # Dashboard passager - Vue 2
 │   └── 30.png                    # Modal de réservation
+│   └── 31.png                    # Widget Support IA (frontend)
 └── README.md                     # Documentation du projet
 ```
 
@@ -881,6 +882,7 @@ curl -X POST http://localhost:3000/api/ai/chat \
 ### Capture d'écran - Test du chatbot
 
 ![Test chatbot IA](./captures/22.png)
+![Widget Support IA - Frontend](./captures/31.png)
 *Exemple de conversation avec le chatbot pour obtenir des informations sur les trajets disponibles*
 
 ---
@@ -2578,4 +2580,3 @@ npm run lint     # Linter le code
 ## 📄 Licence
 
 Ce projet est développé à des fins éducatives.
-

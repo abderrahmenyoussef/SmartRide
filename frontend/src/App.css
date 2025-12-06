@@ -1,4 +1,26 @@
 /* App.css - Main App Styles */
 
-/* This file can be used for App-specific styles */
-/* Global styles are in index.css */
+.app-loading {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+}
+
+.app-loading-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.app-loading-card p {
+  margin: 0;
+  color: #555;
+  font-weight: 500;
+}

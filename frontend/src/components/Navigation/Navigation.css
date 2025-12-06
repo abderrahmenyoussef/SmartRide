@@ -108,6 +108,16 @@
   color: #333;
 }
 
+.role-chip {
+  background: #f1f8f4;
+  color: #388e3c;
+  border: 1px solid #d8eedd;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -139,6 +149,12 @@
   text-decoration: none;
   transition: background-color 0.2s;
   font-size: 0.95rem;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .dropdown-item:hover {

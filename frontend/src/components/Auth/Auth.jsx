@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Modal } from '../shared';
+import { useAuth } from '../../hooks/useAuth';
 import './Auth.css';
 
 function Auth() {
   const navigate = useNavigate();
+  const { login, register, isAuthenticated, isAuthLoading } = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+      const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   // Alert state
@@ -51,6 +52,13 @@ function Auth() {
     password: false
   });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -84,8 +92,7 @@ function Auth() {
   
   const getLoginErrors = () => {
     const errors = {};
-    if (!loginForm.email) errors.email = 'Email est obligatoire';
-    else if (!isEmailValid(loginForm.email)) errors.email = 'Format d\'email invalide';
+    if (!loginForm.email) errors.email = 'Identifiant requis';
     if (!loginForm.password) errors.password = 'Mot de passe est obligatoire';
     return errors;
   };
@@ -97,7 +104,7 @@ function Auth() {
     if (!registerForm.email) errors.email = 'Email est obligatoire';
     else if (!isEmailValid(registerForm.email)) errors.email = 'Format d\'email invalide';
     if (!registerForm.password) errors.password = 'Mot de passe est obligatoire';
-    else if (registerForm.password.length < 6) errors.password = 'Mot de passe doit avoir au moins 6 caractères';
+    else if (registerForm.password.length < 8) errors.password = 'Mot de passe doit avoir au moins 8 caractères';
     return errors;
   };
 
@@ -107,7 +114,7 @@ function Auth() {
   const isLoginValid = Object.keys(loginErrors).length === 0;
   const isRegisterValid = Object.keys(registerErrors).length === 0 && registerForm.termsAccepted;
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -117,23 +124,19 @@ function Auth() {
       return;
     }
 
-    // Static demo: simulate login
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await login({ identifier: loginForm.email, password: loginForm.password });
       setSuccessMessage('Connexion réussie ! Redirection...');
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
-    }, 1000);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
 
-    // Check if terms are accepted
     if (!registerForm.termsAccepted) {
       setAlertConfig({
         type: 'warning',
@@ -149,16 +152,14 @@ function Auth() {
       return;
     }
 
-    // Static demo: simulate registration
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setAlertConfig({
-        type: 'success',
-        title: 'Compte créé !',
-        message: 'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.'
+    try {
+      await register({
+        username: registerForm.username,
+        email: registerForm.email,
+        password: registerForm.password,
+        role: registerForm.role
       });
-      setShowAlert(true);
+      setSuccessMessage('Compte créé ! Redirection vers votre tableau de bord...');
       setIsLoginMode(true);
       setRegisterForm({
         username: '',
@@ -167,7 +168,9 @@ function Auth() {
         role: 'passager',
         termsAccepted: false
       });
-    }, 1000);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
   };
 
   const closeAlert = () => {
@@ -233,16 +236,16 @@ function Auth() {
             <div className="form-group">
               <label htmlFor="login-email">
                 <i className="fas fa-envelope"></i>
-                Email
+                Email ou nom d'utilisateur
               </label>
               <input
-                type="email"
+                type="text"
                 id="login-email"
                 name="email"
                 value={loginForm.email}
                 onChange={handleLoginChange}
                 onBlur={() => handleLoginBlur('email')}
-                placeholder="Votre adresse email"
+                placeholder="Email ou nom d'utilisateur"
               />
               {loginTouched.email && loginErrors.email && (
                 <div className="validation-error">
@@ -290,15 +293,15 @@ function Auth() {
                   onChange={handleLoginChange}
                 /> Se souvenir de moi
               </label>
-              <a href="#" className="forgot-password">Mot de passe oublié?</a>
+              <span className="forgot-password">Mot de passe oublié?</span>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isAuthLoading}
               className="auth-button"
             >
-              {isLoading ? (
+              {isAuthLoading ? (
                 <span>
                   <i className="fas fa-spinner fa-spin"></i> Connexion en cours...
                 </span>
@@ -436,10 +439,10 @@ function Auth() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isAuthLoading}
               className="auth-button"
             >
-              {isLoading ? (
+              {isAuthLoading ? (
                 <span>
                   <i className="fas fa-spinner fa-spin"></i> Inscription en cours...
                 </span>

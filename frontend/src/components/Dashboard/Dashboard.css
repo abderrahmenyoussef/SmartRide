@@ -10,6 +10,30 @@
   padding: 30px 20px 60px;
 }
 
+.loading-overlay.page {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: #555;
+}
+
+.error-banner {
+  background: #ffebee;
+  border: 1px solid #ef9a9a;
+  color: #b71c1c;
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 /* Header Section */
 .dashboard-header {
   margin-bottom: 40px;
@@ -324,6 +348,13 @@
 
 .status-badge.driver {
   background: #FF9800;
+}
+
+.status-badge.filled {
+  position: static;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
 }
 
 .profile-info {
@@ -696,6 +727,24 @@
   color: #666;
   font-size: 0.95rem;
   line-height: 1.6;
+}
+
+.feature-card.ride-highlight {
+  align-items: flex-start;
+  text-align: left;
+  gap: 6px;
+}
+
+.feature-card.ride-highlight h3 {
+  margin-bottom: 6px;
+}
+
+.feature-card .author-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #4CAF50;
+  font-weight: 600;
 }
 
 /* Testimonials */

@@ -1,26 +1,32 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { mockDriverRides } from '../../data/mockData';
+import { apiRequest } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth'
 import { Alert } from '../shared';
 import './TrajetForm.css';
 
-// Helper function to get initial trajet data
-const getInitialTrajet = (id) => {
-  if (id) {
-    const existingTrajet = mockDriverRides.find(r => r.id === parseInt(id));
-    if (existingTrajet) {
-      return {
-        depart: existingTrajet.departure,
-        destination: existingTrajet.arrival,
-        dateDepart: existingTrajet.date,
-        heure: existingTrajet.time,
-        placesDisponibles: existingTrajet.seats,
-        prix: existingTrajet.price,
-        description: existingTrajet.description || ''
-      };
-    }
-  }
-  return {
+const formatTimeInput = (isoDate) => {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+const buildDateTimeISO = (date, time) => {
+  const [hours, minutes] = (time || '00:00').split(':').map(Number);
+  const d = new Date(date);
+  d.setHours(hours || 0, minutes || 0, 0, 0);
+  return d.toISOString();
+};
+
+function TrajetForm() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
+  const { user, token } = useAuth();
+
+  const [trajet, setTrajet] = useState({
     depart: '',
     destination: '',
     dateDepart: '',
@@ -28,15 +34,7 @@ const getInitialTrajet = (id) => {
     placesDisponibles: 1,
     prix: '',
     description: ''
-  };
-};
-
-function TrajetForm() {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const isEditMode = !!id;
-
-  const [trajet, setTrajet] = useState(() => getInitialTrajet(id));
+  });
   const [errors, setErrors] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
@@ -46,9 +44,41 @@ function TrajetForm() {
     message: ''
   });
 
+  const isDriver = user?.role === 'conducteur';
+
+  const minDate = useMemo(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }, []);
+
+  useEffect(() => {
+    const fetchTrajet = async () => {
+      if (!isEditMode) return;
+      setIsLoading(true);
+      try {
+        const res = await apiRequest(`/trajets/${id}`, { token });
+        const t = res.trajet;
+        setTrajet({
+          depart: t.depart || '',
+          destination: t.destination || '',
+          dateDepart: t.dateDepart ? t.dateDepart.split('T')[0] : '',
+          heure: formatTimeInput(t.dateDepart),
+          placesDisponibles: t.placesDisponibles || 1,
+          prix: t.prix || '',
+          description: t.description || ''
+        });
+      } catch (err) {
+        setErrors([err.message]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTrajet();
+  }, [id, isEditMode, token]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setTrajet(prev => ({
+    setTrajet((prev) => ({
       ...prev,
       [name]: value
     }));
@@ -57,31 +87,28 @@ function TrajetForm() {
   const validateForm = () => {
     const newErrors = [];
 
-    if (!trajet.depart.trim()) {
-      newErrors.push('Le lieu de départ est obligatoire');
-    }
-    if (!trajet.destination.trim()) {
-      newErrors.push('La destination est obligatoire');
-    }
-    if (!trajet.dateDepart) {
-      newErrors.push('La date de départ est obligatoire');
-    }
-    if (!trajet.heure) {
-      newErrors.push("L'heure de départ est obligatoire");
-    }
-    if (!trajet.placesDisponibles || trajet.placesDisponibles < 1 || trajet.placesDisponibles > 6) {
+    if (!trajet.depart.trim()) newErrors.push('Le lieu de départ est obligatoire');
+    if (!trajet.destination.trim()) newErrors.push('La destination est obligatoire');
+    if (!trajet.dateDepart) newErrors.push('La date de départ est obligatoire');
+    if (!trajet.heure) newErrors.push("L'heure de départ est obligatoire");
+
+    const places = Number(trajet.placesDisponibles);
+    if (!places || places < 1 || places > 6) {
       newErrors.push('Le nombre de places doit être entre 1 et 6');
     }
-    if (!trajet.prix || trajet.prix <= 0) {
+
+    const prix = Number(trajet.prix);
+    if (!prix || prix <= 0) {
       newErrors.push('Le prix doit être supérieur à 0');
     }
 
-    // Check if date is not in the past
-    const selectedDate = new Date(trajet.dateDepart);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (selectedDate < today) {
-      newErrors.push('La date de départ ne peut pas être dans le passé');
+    if (trajet.dateDepart) {
+      const selectedDate = new Date(trajet.dateDepart);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate < today) {
+        newErrors.push('La date de départ ne peut pas être dans le passé');
+      }
     }
 
     setErrors(newErrors);
@@ -100,44 +127,57 @@ function TrajetForm() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      
+    const payload = {
+      depart: trajet.depart,
+      destination: trajet.destination,
+      dateDepart: buildDateTimeISO(trajet.dateDepart, trajet.heure),
+      placesDisponibles: Number(trajet.placesDisponibles),
+      prix: Number(trajet.prix),
+      description: trajet.description
+    };
+
+    try {
       if (isEditMode) {
-        showCustomAlert(
-          'success',
-          'Trajet modifié !',
-          'Votre trajet a été mis à jour avec succès.'
-        );
+        await apiRequest(`/trajets/${id}`, { method: 'PUT', data: payload, token });
+        showCustomAlert('success', 'Trajet modifié !', 'Votre trajet a été mis à jour avec succès.');
       } else {
+        await apiRequest('/trajets', { method: 'POST', data: payload, token });
         showCustomAlert(
           'success',
           'Trajet créé !',
           'Votre trajet a été publié avec succès. Les passagers peuvent maintenant le réserver.'
         );
       }
-    }, 1500);
+    } catch (err) {
+      setErrors([err.message]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const cancel = () => {
     navigate('/dashboard');
   };
 
-  // Get today's date for min attribute
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  };
+  if (!isDriver) {
+    return (
+      <div className="trajet-form-page">
+        <div className="trajet-form-container">
+          <h2>Accès réservé aux conducteurs</h2>
+          <p>Seuls les conducteurs peuvent créer ou modifier un trajet.</p>
+          <button className="btn-submit" onClick={() => navigate('/dashboard')}>
+            Retour au tableau de bord
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="trajet-form-page">
@@ -196,7 +236,7 @@ function TrajetForm() {
                 name="dateDepart"
                 value={trajet.dateDepart}
                 onChange={handleChange}
-                min={getTodayDate()}
+                min={minDate}
                 required
               />
             </div>
@@ -270,8 +310,8 @@ function TrajetForm() {
               <i className="fas fa-times"></i> Annuler
             </button>
             <button type="submit" className="btn-submit" disabled={isLoading}>
-              <i className={isLoading ? "fas fa-spinner fa-spin" : "fas fa-save"}></i>
-              {isLoading ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour' : 'Créer le trajet')}
+              <i className={isLoading ? 'fas fa-spinner fa-spin' : 'fas fa-save'}></i>
+              {isLoading ? 'Enregistrement...' : isEditMode ? 'Mettre à jour' : 'Créer le trajet'}
             </button>
           </div>
         </form>
@@ -285,7 +325,6 @@ function TrajetForm() {
         )}
       </div>
 
-      {/* Alert Modal */}
       <Alert
         isOpen={showAlert}
         onClose={closeAlert}

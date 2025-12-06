@@ -1,5 +1,5 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth'
 import './Navigation.css';
 
 function Navigation() {
@@ -10,6 +10,10 @@ function Navigation() {
   const handleLogout = async () => {
     await logout();
     navigate('/auth');
+  };
+
+  const openChatWidget = () => {
+    window.dispatchEvent(new CustomEvent('smartride-open-chat'));
   };
 
   return (
@@ -51,9 +55,9 @@ function Navigation() {
                 <Link to="/dashboard" className="dropdown-item">
                   <i className="fas fa-home"></i> Tableau de bord
                 </Link>
-                <Link to="/chat" className="dropdown-item">
+                <button type="button" className="dropdown-item" onClick={openChatWidget}>
                   <i className="fas fa-comments"></i> Assistance IA
-                </Link>
+                </button>
                 {user?.role === 'conducteur' && (
                   <Link to="/trajets/nouveau" className="dropdown-item">
                     <i className="fas fa-plus-circle"></i> Nouveau trajet
