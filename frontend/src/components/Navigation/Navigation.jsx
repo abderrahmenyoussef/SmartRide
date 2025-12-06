@@ -1,20 +1,15 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { mockUser } from '../../data/mockData';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import './Navigation.css';
 
 function Navigation() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Static: always logged in for demo
-  const [currentUser] = useState(mockUser);
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    // In static version, just toggle the state
-  };
-
-  const handleLogin = () => {
-    setIsAuthenticated(true);
+  const handleLogout = async () => {
+    await logout();
+    navigate('/auth');
   };
 
   return (
@@ -30,33 +25,40 @@ function Navigation() {
         </div>
 
         <div className="navbar-menu">
-          <Link 
-            to="/dashboard" 
+          <Link
+            to="/dashboard"
             className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
           >
-            Accueil
+            Dashboard
           </Link>
-          <Link 
-            to="/trajets" 
-            className={`nav-link ${location.pathname.startsWith('/trajets') ? 'active' : ''}`}
-          >
-            Trajets
-          </Link>
-          
+          {isAuthenticated && user?.role === 'conducteur' && (
+            <Link
+              to="/trajets/nouveau"
+              className={`nav-link ${location.pathname.startsWith('/trajets') ? 'active' : ''}`}
+            >
+              Proposer un trajet
+            </Link>
+          )}
           {isAuthenticated ? (
             <div className="user-menu">
               <button className="user-menu-btn">
                 <i className="fas fa-user-circle"></i>
-                <span>{currentUser?.username}</span>
+                <span>{user?.username}</span>
+                {user?.role && <span className="role-chip">{user.role}</span>}
                 <i className="fas fa-chevron-down"></i>
               </button>
               <div className="dropdown-menu">
-                <Link to="/profile" className="dropdown-item">
-                  <i className="fas fa-user"></i> Mon profil
+                <Link to="/dashboard" className="dropdown-item">
+                  <i className="fas fa-home"></i> Tableau de bord
                 </Link>
-                <Link to="/mes-trajets" className="dropdown-item">
-                  <i className="fas fa-route"></i> Mes trajets
+                <Link to="/chat" className="dropdown-item">
+                  <i className="fas fa-comments"></i> Assistance IA
                 </Link>
+                {user?.role === 'conducteur' && (
+                  <Link to="/trajets/nouveau" className="dropdown-item">
+                    <i className="fas fa-plus-circle"></i> Nouveau trajet
+                  </Link>
+                )}
                 <div className="dropdown-divider"></div>
                 <button onClick={handleLogout} className="dropdown-item logout-item">
                   <i className="fas fa-sign-out-alt"></i> Déconnexion
@@ -64,7 +66,7 @@ function Navigation() {
               </div>
             </div>
           ) : (
-            <Link to="/auth" className="nav-link auth-link" onClick={handleLogin}>
+            <Link to="/auth" className="nav-link auth-link">
               <i className="fas fa-sign-in-alt"></i> Connexion
             </Link>
           )}
