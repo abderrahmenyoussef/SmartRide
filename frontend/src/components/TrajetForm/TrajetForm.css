@@ -88,6 +88,80 @@
   display: block;
 }
 
+.price-group .price-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-predict {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+}
+
+.btn-predict:hover:not(:disabled) {
+  background-color: #3d8b3d;
+  transform: translateY(-1px);
+}
+
+.btn-predict:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.predict-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  height: 42px;
+}
+
+.predict-error {
+  color: #c0392b;
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+}
+
+.predict-price-box {
+  background: #f8f9fa;
+  border: 1px dashed #dce3e8;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.predict-price-box .btn-secondary {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.predict-error {
+  color: #c0392b;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.predict-result {
+  margin: 0;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

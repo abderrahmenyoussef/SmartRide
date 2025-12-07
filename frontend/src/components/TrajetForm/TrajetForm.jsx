@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiRequest } from '../../api/client';
-import { useAuth } from '../../hooks/useAuth'
+import { predictPriceApi } from '../../api/priceClient';
+import { useAuth } from '../../hooks/useAuth';
 import { Alert } from '../shared';
 import './TrajetForm.css';
 
@@ -18,6 +19,13 @@ const buildDateTimeISO = (date, time) => {
   const d = new Date(date);
   d.setHours(hours || 0, minutes || 0, 0, 0);
   return d.toISOString();
+};
+
+const parseHour = (timeStr) => {
+  if (!timeStr) return null;
+  const [h] = timeStr.split(':').map((v) => parseInt(v, 10));
+  if (Number.isNaN(h)) return null;
+  return h;
 };
 
 function TrajetForm() {
@@ -37,6 +45,9 @@ function TrajetForm() {
   });
   const [errors, setErrors] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPredicting, setIsPredicting] = useState(false);
+  const [predictedPrice, setPredictedPrice] = useState(null);
+  const [predictError, setPredictError] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     type: 'success',
@@ -165,6 +176,34 @@ function TrajetForm() {
     navigate('/dashboard');
   };
 
+  const handlePredictPrice = async () => {
+    setPredictError('');
+    setPredictedPrice(null);
+
+    const hour = parseHour(trajet.heure);
+    if (!trajet.depart.trim() || !trajet.destination.trim() || hour === null || !trajet.placesDisponibles) {
+      setPredictError('Veuillez renseigner départ, destination, heure et nombre de places avant de prédire.');
+      return;
+    }
+
+    setIsPredicting(true);
+    try {
+      const price = await predictPriceApi({
+        depart: trajet.depart.trim(),
+        destination: trajet.destination.trim(),
+        heure_depart: hour,
+        places_disponibles: Number(trajet.placesDisponibles)
+      });
+      const normalizedPrice = Number(price.toFixed(2));
+      setPredictedPrice(normalizedPrice);
+      setTrajet((prev) => ({ ...prev, prix: normalizedPrice }));
+    } catch (err) {
+      setPredictError(err.message || 'Erreur lors de la prédiction');
+    } finally {
+      setIsPredicting(false);
+    }
+  };
+
   if (!isDriver) {
     return (
       <div className="trajet-form-page">
@@ -274,20 +313,39 @@ function TrajetForm() {
               <small className="helper-text">Entre 1 et 6 places disponibles</small>
             </div>
 
-            <div className="form-group">
+            <div className="form-group price-group">
               <label htmlFor="prix">
                 <i className="fas fa-tag"></i> Prix par personne (DT)
               </label>
-              <input
-                type="number"
-                id="prix"
-                name="prix"
-                value={trajet.prix}
-                onChange={handleChange}
-                min="1"
-                step="0.5"
-                required
-              />
+              <div className="price-row">
+                <input
+                  type="number"
+                  id="prix"
+                  name="prix"
+                  value={trajet.prix}
+                  onChange={handleChange}
+                  min="1"
+                  step="0.5"
+                  required
+                />
+                <button
+                  type="button"
+                  className="btn-predict predict-inline"
+                  onClick={handlePredictPrice}
+                  disabled={isPredicting}
+                  title="Prédire le prix automatiquement (IA)"
+                >
+                  {isPredicting ? (
+                    <i className="fas fa-spinner fa-spin"></i>
+                  ) : (
+                    <>
+                      <i className="fas fa-wand-magic-sparkles"></i>
+                      <span>Prédire (IA)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              {predictError && <p className="predict-error">{predictError}</p>}
             </div>
           </div>
 

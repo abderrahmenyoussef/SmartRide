@@ -160,6 +160,14 @@ SmartRide/
 │   ├── vite.config.js           # Configuration Vite
 │   ├── eslint.config.js         # Configuration ESLint
 │   └── package.json             # Dépendances et scripts npm frontend
+├── pricing-model/               # Service FastAPI de prédiction de prix
+│   ├── api/main.py              # API FastAPI (POST /predict)
+│   ├── generate_data.py         # Génération de données synthétiques (seed 42)
+│   ├── train_model.py           # Entraînement et sauvegarde du modèle .pkl
+│   ├── requirements.txt         # Dépendances Python (FastAPI, sklearn, pandas…)
+│   ├── Dockerfile               # Image python:3.11-slim + uvicorn
+│   ├── data/                    # Jeux de données (gitignored)
+│   └── models/                  # Modèles entraînés (.pkl, gitignored)
 ├── captures/                     # Screenshots des tests API et de l'interface
 │   ├── 1.png                     # Test endpoint Register
 │   ├── 2.png                     # Test endpoint Login
@@ -190,8 +198,9 @@ SmartRide/
 │   ├── 27.png                    # Formulaire création de trajet
 │   ├── 28.png                    # Dashboard passager - Vue 1
 │   ├── 29.png                    # Dashboard passager - Vue 2
-│   └── 30.png                    # Modal de réservation
-│   └── 31.png                    # Widget Support IA (frontend)
+│   ├── 30.png                    # Modal de réservation
+│   ├── 31.png                    # Widget Support IA (frontend)
+│   └── 32.png                    # Prédiction de prix (IA)
 └── README.md                     # Documentation du projet
 ```
 
@@ -883,7 +892,40 @@ curl -X POST http://localhost:3000/api/ai/chat \
 
 ![Test chatbot IA](./captures/22.png)
 ![Widget Support IA - Frontend](./captures/31.png)
+![Prédiction de prix (IA)](./captures/32.png)
 *Exemple de conversation avec le chatbot pour obtenir des informations sur les trajets disponibles*
+
+---
+
+## 🧠 Service de prédiction de prix (FastAPI + modèle ML)
+
+Objectif : estimer automatiquement le prix d’un trajet à partir des données du formulaire (départ, destination, heure, nombre de places). Le calcul de la distance est fait côté API (aucun champ distance à fournir côté frontend).
+
+- **Données** : `pricing-model/data/generated_rides.csv` (générées via `generate_data.py`, seed=42).
+- **Entraînement** : `python3 pricing-model/train_model.py` (crée `pricing-model/models/price_model.pkl` et affiche MAE / RMSE / R2 pour train / val / test).
+- **API FastAPI** : `pricing-model/api/main.py`
+  - `POST /predict` body :
+    ```json
+    { "depart": "Tunis", "destination": "Sousse", "heure_depart": 8, "places_disponibles": 3 }
+    ```
+    Retour : un nombre (prix estimé). Swagger : `/docs`. Calcul de distance en interne via les coordonnées des villes.
+  - `GET /health` pour un ping rapide.
+- **Intégration frontend** :
+  - Bouton “Prédire (IA)” dans le formulaire trajet, à droite du champ prix. Le montant estimé est injecté directement dans le champ prix comme si l’utilisateur l’avait saisi.
+  - Config : `VITE_PRICE_API_URL` (défaut `http://localhost:8000`).
+- **Docker** :
+  - Service `pricing-api` dans `docker-compose.yml` (port 8000, image python:3.11-slim).
+  - `.dockerignore` et `.gitignore` dédiés (excluent data / models / env).
+  - Build/Run : `docker compose up -d --build` (prévoir `pricing-model/.env` ou retirer `env_file` si non utilisé).
+
+Commandes utiles (local) :
+```bash
+cd pricing-model
+python3 -m pip install -r requirements.txt      # dépendances API + ML
+python3 generate_data.py --samples 1200         # régénère les données si besoin
+python3 train_model.py                          # entraîne et sauvegarde le modèle
+uvicorn api.main:app --reload --port 8000       # lance l’API de prédiction
+```
 
 ---
 

@@ -29,6 +29,22 @@ services:
     networks:
       - smartride-network
 
+  # Service FastAPI pour la prédiction de prix
+  pricing-api:
+    build:
+      context: ./pricing-model
+      dockerfile: Dockerfile
+    container_name: smartride-pricing-api
+    restart: unless-stopped
+    env_file:
+      - ./pricing-model/.env
+    environment:
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    networks:
+      - smartride-network
+
 # Réseau isolé pour les services
 networks:
   smartride-network:
