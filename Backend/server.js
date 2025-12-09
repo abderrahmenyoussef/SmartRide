@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./config/db')
 const { userErrorHandler, urlnotfound } = require('./middleware/authMiddleware');
@@ -8,6 +9,14 @@ const authRoutes = require('./routes/authRoutes');
 const trajetRoutes = require('./routes/trajetRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+//cors middleware
+app.use(cors({
+  origin: [FRONTEND_URL],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // Middleware pour parser le JSON
 app.use(express.json());
