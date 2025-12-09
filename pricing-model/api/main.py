@@ -120,4 +120,7 @@ def predict_price(payload: PriceRequest):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Erreur de prédiction: {exc}") from exc
 
-    return round(float(pred), 2)
+    # Arrondir au .0 ou .5 le plus proche
+    raw = float(pred)
+    rounded = round(raw * 2) / 2  # arrondi au demi
+    return float(f"{rounded:.1f}")
