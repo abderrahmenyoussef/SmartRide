@@ -2,6 +2,8 @@
 
 **SmartRide** est une plateforme de covoiturage intelligente qui permet de connecter les conducteurs et les passagers de manière efficace et sécurisée.
 
+**Démo en ligne :** https://projetmern10122025.netlify.app
+
 ---
 
 ## 📋 Table des matières
