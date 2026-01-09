@@ -36,12 +36,14 @@ function Navigation() {
         </div>
 
         <div className="navbar-menu">
-          <Link
-            to="/dashboard"
-            className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
-          >
-            Dashboard
-          </Link>
+          {!isAdminAuthenticated && (
+            <Link
+              to="/dashboard"
+              className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
+            >
+              Dashboard
+            </Link>
+          )}
           {isAuthenticated && user?.role === 'conducteur' && (
             <Link
               to="/trajets/nouveau"
