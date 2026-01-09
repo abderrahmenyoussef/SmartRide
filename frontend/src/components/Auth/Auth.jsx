@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Modal } from '../shared';
 import { useAuth } from '../../hooks/useAuth';
+import { useAdmin } from '../../hooks/useAdmin';
 import './Auth.css';
 
 function Auth() {
   const navigate = useNavigate();
   const { login, register, isAuthenticated, isAuthLoading } = useAuth();
+  const { loginAdmin } = useAdmin();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -232,7 +234,7 @@ function Auth() {
     }
 
     if (adminForm.username === 'admin' && adminForm.password === 'admin') {
-      localStorage.setItem('smartride:admin', 'true');
+      loginAdmin();
       navigate('/admin');
       return;
     }

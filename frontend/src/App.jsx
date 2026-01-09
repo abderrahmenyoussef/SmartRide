@@ -6,6 +6,7 @@ import TrajetForm from './components/TrajetForm/TrajetForm';
 import Admin from './components/Admin/Admin';
 import ChatWidget from './components/Chat/ChatWidget';
 import { useAuth } from './hooks/useAuth'
+import { useAdmin } from './hooks/useAdmin';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -30,8 +31,8 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const AdminRoute = ({ children }) => {
-  const isAdmin = localStorage.getItem('smartride:admin') === 'true';
-  if (!isAdmin) {
+  const { isAdminAuthenticated } = useAdmin();
+  if (!isAdminAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
   return children;
