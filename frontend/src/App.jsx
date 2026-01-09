@@ -3,6 +3,7 @@ import Navigation from './components/Navigation/Navigation';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/Dashboard/Dashboard';
 import TrajetForm from './components/TrajetForm/TrajetForm';
+import Admin from './components/Admin/Admin';
 import ChatWidget from './components/Chat/ChatWidget';
 import { useAuth } from './hooks/useAuth'
 import './App.css';
@@ -25,6 +26,14 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/auth" replace />;
   }
 
+  return children;
+};
+
+const AdminRoute = ({ children }) => {
+  const isAdmin = localStorage.getItem('smartride:admin') === 'true';
+  if (!isAdmin) {
+    return <Navigate to="/auth" replace />;
+  }
   return children;
 };
 
@@ -58,6 +67,14 @@ function App() {
               <ProtectedRoute>
                 <TrajetForm />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <Admin />
+              </AdminRoute>
             }
           />
           <Route path="/profile" element={<Navigate to="/dashboard" replace />} />

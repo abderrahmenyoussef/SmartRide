@@ -8,8 +8,9 @@ function Auth() {
   const navigate = useNavigate();
   const { login, register, isAuthenticated, isAuthLoading } = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-      const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   // Alert state
@@ -40,6 +41,12 @@ function Auth() {
     termsAccepted: false
   });
 
+  // Admin form state
+  const [adminForm, setAdminForm] = useState({
+    username: '',
+    password: ''
+  });
+
   // Form touched state for validation
   const [loginTouched, setLoginTouched] = useState({
     email: false,
@@ -49,6 +56,11 @@ function Auth() {
   const [registerTouched, setRegisterTouched] = useState({
     username: false,
     email: false,
+    password: false
+  });
+
+  const [adminTouched, setAdminTouched] = useState({
+    username: false,
     password: false
   });
 
@@ -79,12 +91,39 @@ function Auth() {
     }));
   };
 
+  const handleAdminChange = (e) => {
+    const { name, value } = e.target;
+    setAdminForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleLoginBlur = (field) => {
     setLoginTouched(prev => ({ ...prev, [field]: true }));
   };
 
   const handleRegisterBlur = (field) => {
     setRegisterTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  const handleAdminBlur = (field) => {
+    setAdminTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  const switchTab = (tab) => {
+    setErrorMessage('');
+    setSuccessMessage('');
+    if (tab === 'login') {
+      setIsLoginMode(true);
+      setIsAdminMode(false);
+    } else if (tab === 'register') {
+      setIsLoginMode(false);
+      setIsAdminMode(false);
+    } else {
+      setIsLoginMode(true);
+      setIsAdminMode(true);
+    }
   };
 
   // Validation helpers
@@ -108,11 +147,20 @@ function Auth() {
     return errors;
   };
 
+  const getAdminErrors = () => {
+    const errors = {};
+    if (!adminForm.username) errors.username = 'Identifiant admin requis';
+    if (!adminForm.password) errors.password = 'Mot de passe admin requis';
+    return errors;
+  };
+
   const loginErrors = getLoginErrors();
   const registerErrors = getRegisterErrors();
+  const adminErrors = getAdminErrors();
 
   const isLoginValid = Object.keys(loginErrors).length === 0;
   const isRegisterValid = Object.keys(registerErrors).length === 0 && registerForm.termsAccepted;
+  const isAdminValid = Object.keys(adminErrors).length === 0;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -173,6 +221,25 @@ function Auth() {
     }
   };
 
+  const handleAdminLogin = (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (!isAdminValid) {
+      setAdminTouched({ username: true, password: true });
+      return;
+    }
+
+    if (adminForm.username === 'admin' && adminForm.password === 'admin') {
+      localStorage.setItem('smartride:admin', 'true');
+      navigate('/admin');
+      return;
+    }
+
+    setErrorMessage('Identifiants admin invalides');
+  };
+
   const closeAlert = () => {
     setShowAlert(false);
   };
@@ -195,9 +262,15 @@ function Auth() {
             <i className="fas fa-car-side"></i>
             <h1>SmartRide</h1>
           </div>
-          <h2>{isLoginMode ? 'Connexion' : 'Créer un compte'}</h2>
+          <h2>
+            {isAdminMode ? 'Espace admin' : isLoginMode ? 'Connexion' : 'Créer un compte'}
+          </h2>
           <p className="auth-subtitle">
-            {isLoginMode ? 'Accédez à votre compte' : 'Rejoignez notre communauté de covoiturage'}
+            {isAdminMode
+              ? 'Accès réservé à l’administration'
+              : isLoginMode
+                ? 'Accédez à votre compte'
+                : 'Rejoignez notre communauté de covoiturage'}
           </p>
         </div>
 
@@ -217,21 +290,27 @@ function Auth() {
 
         <div className="auth-tabs">
           <button 
-            className={isLoginMode ? 'active' : ''} 
-            onClick={() => setIsLoginMode(true)}
+            className={isLoginMode && !isAdminMode ? 'active' : ''} 
+            onClick={() => switchTab('login')}
           >
             Connexion
           </button>
           <button 
-            className={!isLoginMode ? 'active' : ''} 
-            onClick={() => setIsLoginMode(false)}
+            className={!isLoginMode && !isAdminMode ? 'active' : ''} 
+            onClick={() => switchTab('register')}
           >
             Inscription
+          </button>
+          <button
+            className={isAdminMode ? 'active' : ''}
+            onClick={() => switchTab('admin')}
+          >
+            Espace admin
           </button>
         </div>
 
         {/* Login Form */}
-        {isLoginMode && (
+        {isLoginMode && !isAdminMode && (
           <form onSubmit={handleLogin} className="auth-form">
             <div className="form-group">
               <label htmlFor="login-email">
@@ -315,7 +394,7 @@ function Auth() {
         )}
 
         {/* Register Form */}
-        {!isLoginMode && (
+        {!isLoginMode && !isAdminMode && (
           <form onSubmit={handleRegister} className="auth-form">
             <div className="form-group">
               <label htmlFor="register-username">
@@ -449,6 +528,77 @@ function Auth() {
               ) : (
                 <span>
                   <i className="fas fa-user-plus"></i> Créer un compte
+                </span>
+              )}
+            </button>
+          </form>
+        )}
+
+        {isAdminMode && (
+          <form onSubmit={handleAdminLogin} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="admin-username">
+                <i className="fas fa-user-shield"></i>
+                Identifiant admin
+              </label>
+              <input
+                type="text"
+                id="admin-username"
+                name="username"
+                value={adminForm.username}
+                onChange={handleAdminChange}
+                onBlur={() => handleAdminBlur('username')}
+                placeholder="Votre identifiant"
+              />
+              {adminTouched.username && adminErrors.username && (
+                <div className="validation-error">
+                  <i className="fas fa-info-circle"></i> {adminErrors.username}
+                </div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="admin-password">
+                <i className="fas fa-lock"></i>
+                Mot de passe admin
+              </label>
+              <div className="password-input">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="admin-password"
+                  name="password"
+                  value={adminForm.password}
+                  onChange={handleAdminChange}
+                  onBlur={() => handleAdminBlur('password')}
+                  placeholder="Votre mot de passe"
+                />
+                <button 
+                  type="button" 
+                  className="toggle-password" 
+                  onClick={togglePasswordVisibility}
+                >
+                  <i className={showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'}></i>
+                </button>
+              </div>
+              {adminTouched.password && adminErrors.password && (
+                <div className="validation-error">
+                  <i className="fas fa-info-circle"></i> {adminErrors.password}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isAuthLoading}
+              className="auth-button"
+            >
+              {isAuthLoading ? (
+                <span>
+                  <i className="fas fa-spinner fa-spin"></i> Connexion en cours...
+                </span>
+              ) : (
+                <span>
+                  <i className="fas fa-shield-alt"></i> Accéder à l’espace admin
                 </span>
               )}
             </button>
